@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package resilio.common;
+
+option go_package = "github.com/resilio/backend/proto/common";
+
+// Common message types used across services
+
+// Pagination request parameters
+message PaginationRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  string cursor = 3;
+}
+
+// Pagination response metadata
+message PaginationResponse {
+  int32 total = 1;
+  int32 page = 2;
+  int32 limit = 3;
+  int32 total_pages = 4;
+  bool has_next = 5;
+  bool has_previous = 6;
+  string next_cursor = 7;
+  string previous_cursor = 8;
+}
+
+// Timestamp wrapper
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+// Empty response for delete operations
+message Empty {}
+
+// Error details
+message ErrorDetail {
+  string field = 1;
+  string message = 2;
+  string code = 3;
+}
+
+// Standard error response
+message ErrorResponse {
+  int32 status_code = 1;
+  string message = 2;
+  string error_code = 3;
+  repeated ErrorDetail details = 4;
+  Timestamp timestamp = 5;
+}
+
+// Sorting options
+enum SortOrder {
+  SORT_ORDER_UNSPECIFIED = 0;
+  ASC = 1;
+  DESC = 2;
+}
+
+message SortOption {
+  string field = 1;
+  SortOrder order = 2;
+}
+
+// Date range filter
+message DateRange {
+  string start_date = 1; // ISO 8601 format
+  string end_date = 2;   // ISO 8601 format
+}

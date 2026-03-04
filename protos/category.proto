@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package resilio.category;
+
+import "common.proto";
+
+option go_package = "github.com/resilio/backend/proto/category";
+
+// Category entity
+message Category {
+  string id = 1;
+  string name = 2;
+  string image_url = 3;
+  string description = 4;
+  repeated string preference_ids = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+// List categories response
+message ListCategoriesResponse {
+  repeated Category categories = 1;
+}
+
+// Get category by ID request
+message GetCategoryRequest {
+  string id = 1;
+}
+
+// Category service definition
+service CategoryService {
+  // Get all categories
+  rpc GetCategories(resilio.common.Empty) returns (ListCategoriesResponse);
+  
+  // Get category by ID
+  rpc GetCategory(GetCategoryRequest) returns (Category);
+}

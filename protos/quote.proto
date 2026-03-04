@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package resilio.quote;
+
+import "common.proto";
+
+option go_package = "github.com/resilio/backend/proto/quote";
+
+// Quote service for managing featured quotes and tips
+
+// Quote entity
+message Quote {
+  string id = 1;
+  string quote_text = 2;
+  string author = 3;
+  string author_icon_url = 4;
+  string category_id = 5;
+  repeated string preference_ids = 6;
+  bool is_featured = 7;
+  bool is_premium = 8;
+  string quote_type = 9; // e.g., "quote", "tip", "affirmation"
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+// Get featured quotes request
+message GetFeaturedQuotesRequest {
+  int32 limit = 1;
+  repeated string preference_ids = 2;
+}
+
+// Get featured quotes response
+message GetFeaturedQuotesResponse {
+  repeated Quote quotes = 1;
+}
+
+// Get quote by ID request
+message GetQuoteByIdRequest {
+  string id = 1;
+}
+
+// List quotes request
+message ListQuotesRequest {
+  resilio.common.PaginationRequest pagination = 1;
+  string category_id = 2;
+  bool is_featured = 3;
+  bool is_premium = 4;
+  string quote_type = 5;
+  repeated string preference_ids = 6;
+}
+
+// List quotes response
+message ListQuotesResponse {
+  repeated Quote quotes = 1;
+  resilio.common.PaginationResponse pagination = 2;
+}
+
+// Create quote request
+message CreateQuoteRequest {
+  string quote_text = 1;
+  string author = 2;
+  string author_icon_url = 3;
+  string category_id = 4;
+  repeated string preference_ids = 5;
+  bool is_featured = 6;
+  bool is_premium = 7;
+  string quote_type = 8;
+}
+
+// Update quote request
+message UpdateQuoteRequest {
+  string id = 1;
+  optional string quote_text = 2;
+  optional string author = 3;
+  optional string author_icon_url = 4;
+  optional string category_id = 5;
+  repeated string preference_ids = 6;
+  optional bool is_featured = 7;
+  optional bool is_premium = 8;
+  optional string quote_type = 9;
+}
+
+// Delete quote request
+message DeleteQuoteRequest {
+  string id = 1;
+}
+
+// Quote service definition
+service QuoteService {
+  // Get featured quotes
+  rpc GetFeaturedQuotes(GetFeaturedQuotesRequest) returns (GetFeaturedQuotesResponse);
+  
+  // Get quote by ID
+  rpc GetQuoteById(GetQuoteByIdRequest) returns (Quote);
+  
+  // List quotes with filters
+  rpc ListQuotes(ListQuotesRequest) returns (ListQuotesResponse);
+  
+  // Create a new quote (admin only)
+  rpc CreateQuote(CreateQuoteRequest) returns (Quote);
+  
+  // Update quote (admin only)
+  rpc UpdateQuote(UpdateQuoteRequest) returns (Quote);
+  
+  // Delete quote (admin only)
+  rpc DeleteQuote(DeleteQuoteRequest) returns (resilio.common.Empty);
+}

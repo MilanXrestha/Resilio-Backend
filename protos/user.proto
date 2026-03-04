@@ -1,0 +1,232 @@
+syntax = "proto3";
+
+package resilio.user;
+
+import "common.proto";
+
+option go_package = "github.com/resilio/backend/proto/user";
+
+// User service for managing user profiles and preferences
+
+// User entity
+message User {
+  string id = 1;
+  string firebase_uid = 2;
+  string email = 3;
+  string username = 4;
+  string display_name = 5;
+  string photo_url = 6;
+  string phone_number = 7;
+  string date_of_birth = 8;
+  string gender = 9;
+  string user_role = 10;
+  string account_status = 11;
+  bool preferences_completed = 12;
+  string fcm_token = 13;
+  string timezone = 14;
+  string language = 15;
+  string created_at = 16;
+  string updated_at = 17;
+  string last_login_at = 18;
+}
+
+// User preferences
+message UserPreferences {
+  string id = 1;
+  string user_id = 2;
+  string theme = 3;
+  string language = 4;
+  bool notification_enabled = 5;
+  string daily_reminder_time = 6;
+  int32 weekly_report_day = 7;
+  string privacy_level = 8;
+  bool data_sharing_enabled = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message WellnessProfile {
+  string id = 1;
+  string user_id = 2;
+  int32 stress_level = 3;
+  int32 sleep_quality = 4;
+  int32 mood_average = 5;
+  string primary_concern = 6;
+  repeated string goals = 7;
+  repeated string preferred_activities = 8;
+  string emergency_contact_name = 9;
+  string emergency_contact_phone = 10;
+  string emergency_contact_relationship = 11;
+  string therapist_id = 12;
+  bool onboarding_completed = 13;
+  string created_at = 14;
+  string updated_at = 15;
+}
+
+// Content Preference
+message Preference {
+  string id = 1;
+  string preference_id = 2;
+  string preference_name = 3;
+  string preference_description = 4;
+  string preference_icon = 5;
+  bool is_svg = 6;
+  int32 sort_order = 7;
+  bool is_active = 8;
+}
+
+message ListPreferencesResponse {
+  repeated Preference preferences = 1;
+}
+
+message SavePreferencesRequest {
+  repeated string preference_ids = 1;
+}
+
+message PreferenceCompletionStatus {
+  bool completed = 1;
+}
+
+// Create user request
+message CreateUserRequest {
+  string firebase_uid = 1;
+  string email = 2;
+  string username = 3;
+  string display_name = 4;
+  string photo_url = 5;
+  string fcm_token = 6;
+  string language = 7;
+}
+
+// Create user response
+message CreateUserResponse {
+  User user = 1;
+  bool is_new_user = 2;
+}
+
+// Get user request
+message GetUserRequest {
+  string id = 1;
+}
+
+// Get user by Firebase UID request
+message GetUserByFirebaseUidRequest {
+  string firebase_uid = 1;
+}
+
+// Update user request
+message UpdateUserRequest {
+  string id = 1;
+  optional string username = 2;
+  optional string display_name = 3;
+  optional string photo_url = 4;
+  optional string phone_number = 5;
+  optional string date_of_birth = 6;
+  optional string gender = 7;
+  optional string timezone = 8;
+  optional string language = 9;
+  optional string fcm_token = 10;
+}
+
+// Update user preferences request
+message UpdateUserPreferencesRequest {
+  string user_id = 1;
+  optional string theme = 2;
+  optional string language = 3;
+  optional bool notification_enabled = 4;
+  optional string daily_reminder_time = 5;
+  optional int32 weekly_report_day = 6;
+  optional string privacy_level = 7;
+  optional bool data_sharing_enabled = 8;
+}
+
+// Update wellness profile request
+message UpdateWellnessProfileRequest {
+  string user_id = 1;
+  optional int32 stress_level = 2;
+  optional int32 sleep_quality = 3;
+  optional int32 mood_average = 4;
+  optional string primary_concern = 5;
+  repeated string goals = 6;
+  repeated string preferred_activities = 7;
+  optional string emergency_contact_name = 8;
+  optional string emergency_contact_phone = 9;
+  optional string emergency_contact_relationship = 10;
+  optional bool onboarding_completed = 11;
+}
+
+// List users request
+message ListUsersRequest {
+  resilio.common.PaginationRequest pagination = 1;
+  string search_query = 2;
+  string role = 3;
+  string status = 4;
+}
+
+// List users response
+message ListUsersResponse {
+  repeated User users = 1;
+  resilio.common.PaginationResponse pagination = 2;
+}
+
+// Delete user request
+message DeleteUserRequest {
+  string id = 1;
+  bool soft_delete = 2;
+}
+
+// Sync user from Firebase request
+message SyncUserRequest {
+  string firebase_uid = 1;
+  string email = 2;
+  string display_name = 3;
+  string photo_url = 4;
+}
+
+// User service definition
+service UserService {
+  // Create a new user
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  
+  // Get user by ID
+  rpc GetUser(GetUserRequest) returns (User);
+  
+  // Get user by Firebase UID
+  rpc GetUserByFirebaseUid(GetUserByFirebaseUidRequest) returns (User);
+  
+  // Update user profile
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+  
+  // Delete user
+  rpc DeleteUser(DeleteUserRequest) returns (resilio.common.Empty);
+  
+  // List users (admin only)
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  
+  // Sync user from Firebase
+  rpc SyncUser(SyncUserRequest) returns (User);
+  
+  // Get user preferences
+  rpc GetUserPreferences(GetUserRequest) returns (UserPreferences);
+  
+  // Update user preferences
+  rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (UserPreferences);
+  
+  // Get wellness profile
+  rpc GetWellnessProfile(GetUserRequest) returns (WellnessProfile);
+  
+  // Update wellness profile
+  rpc UpdateWellnessProfile(UpdateWellnessProfileRequest) returns (WellnessProfile);
+
+  // Get all available content preferences
+  rpc GetPreferences(resilio.common.Empty) returns (ListPreferencesResponse);
+
+  // Get user's selected preferences
+  rpc GetUserSelectedPreferences(resilio.common.Empty) returns (ListPreferencesResponse);
+
+  // Save user's selected preferences
+  rpc SaveUserPreferences(SavePreferencesRequest) returns (ListPreferencesResponse);
+
+  // Check if user has completed preferences
+  rpc CheckPreferencesCompletion(resilio.common.Empty) returns (PreferenceCompletionStatus);
+}
