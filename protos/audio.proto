@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package resilio.audio;
+
+// Audio Track - represents a meditation/calming audio
+message AudioTrack {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string artist_name = 4;
+  
+  // URLs
+  string audio_url = 5;
+  string cover_image_url = 6;
+  string thumbnail_url = 7;
+  
+  // Metadata
+  int32 duration_seconds = 8;
+  string category_id = 9;
+  repeated string mood_tags = 10;
+  
+  // Categorization
+  bool is_featured = 11;
+  bool is_premium = 12;
+  int32 sort_order = 13;
+  
+  // Stats
+  int32 play_count = 14;
+  int32 like_count = 15;
+  
+  // Status
+  bool is_active = 16;
+  
+  // Timestamps
+  string created_at = 17;
+  string updated_at = 18;
+}
+
+// Get Featured Audio Tracks Request
+message GetFeaturedAudioRequest {
+  int32 limit = 1;
+  repeated string mood_filters = 2;
+}
+
+// Get Featured Audio Tracks Response
+message GetFeaturedAudioResponse {
+  repeated AudioTrack tracks = 1;
+}
+
+// Get Audio by Category Request
+message GetAudioByCategoryRequest {
+  string category_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+// Get Audio Tracks Response (paginated)
+message GetAudioTracksResponse {
+  repeated AudioTrack tracks = 1;
+  int32 total = 2;
+}
+
+// Get Single Audio Track Request
+message GetAudioTrackRequest {
+  string audio_id = 1;
+}
+
+// Get Single Audio Track Response
+message GetAudioTrackResponse {
+  AudioTrack track = 1;
+}
+
+// Increment Play Count Request
+message IncrementPlayCountRequest {
+  string audio_id = 1;
+}
+
+// Increment Play Count Response
+message IncrementPlayCountResponse {
+  bool success = 1;
+  int32 new_count = 2;
+}
