@@ -27,6 +27,7 @@ const preferenceRoutes = require('./routes/preference-routes');
 const categoryRoutes = require('./routes/category-routes');
 const quoteRoutes = require('./routes/quote-routes');
 const audioRoutes = require('./routes/audio-routes');
+const videoRoutes = require('./routes/video-routes');
 const passwordlessRoutes = require('./routes/passwordless-routes');
 
 // Import middleware
@@ -69,6 +70,7 @@ app.use('/api/v1/preferences', preferenceRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/quotes', quoteRoutes);
 app.use('/api/v1/audio', audioRoutes);
+app.use('/api/v1/videos', videoRoutes);
 app.use('/api/v1/passwordless', passwordlessRoutes);
 
 // SuperTokens error handler
