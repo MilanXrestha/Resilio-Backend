@@ -1,0 +1,153 @@
+syntax = "proto3";
+
+package resilio.images;
+
+import "common.proto";
+
+option go_package = "github.com/resilio/backend/proto/images";
+
+// Images service for managing motivational wallpapers and inspirational images
+
+// Image entity
+message Image {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string image_url = 4;
+  string thumbnail_url = 5;
+  string author = 6;
+  string author_icon_url = 7;
+  string category_id = 8;
+  repeated string preference_ids = 9;
+  string image_type = 10; // 'motivation', 'nature', 'quotes', 'abstract', 'spiritual', 'general'
+  bool is_featured = 11;
+  bool is_premium = 12;
+  int32 resolution_width = 13;
+  int32 resolution_height = 14;
+  int64 file_size_bytes = 15;
+  int32 download_count = 16;
+  int32 sort_order = 17;
+  string metadata = 18; // JSON string for flexible metadata
+  string created_at = 19;
+  string updated_at = 20;
+}
+
+// Get featured images request
+message GetFeaturedImagesRequest {
+  int32 limit = 1;
+  repeated string preference_ids = 2;
+  string image_type = 3; // Optional filter by image type
+}
+
+// Get featured images response
+message GetFeaturedImagesResponse {
+  repeated Image images = 1;
+}
+
+// Get image by ID request
+message GetImageByIdRequest {
+  string id = 1;
+}
+
+// List images request
+message ListImagesRequest {
+  resilio.common.PaginationRequest pagination = 1;
+  string category_id = 2;
+  bool is_featured = 3;
+  bool is_premium = 4;
+  string image_type = 5;
+  repeated string preference_ids = 6;
+}
+
+// List images response
+message ListImagesResponse {
+  repeated Image images = 1;
+  resilio.common.PaginationResponse pagination = 2;
+}
+
+// Get images by type request
+message GetImagesByTypeRequest {
+  string image_type = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+// Get images by type response
+message GetImagesByTypeResponse {
+  repeated Image images = 1;
+  int32 total_count = 2;
+}
+
+// Create image request
+message CreateImageRequest {
+  string title = 1;
+  string description = 2;
+  string image_url = 3;
+  string thumbnail_url = 4;
+  string author = 5;
+  string author_icon_url = 6;
+  string category_id = 7;
+  repeated string preference_ids = 8;
+  string image_type = 9;
+  bool is_featured = 10;
+  bool is_premium = 11;
+  int32 resolution_width = 12;
+  int32 resolution_height = 13;
+  int64 file_size_bytes = 14;
+  int32 sort_order = 15;
+  string metadata = 16;
+}
+
+// Update image request
+message UpdateImageRequest {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string image_url = 4;
+  string thumbnail_url = 5;
+  string author = 6;
+  string author_icon_url = 7;
+  string category_id = 8;
+  repeated string preference_ids = 9;
+  string image_type = 10;
+  bool is_featured = 11;
+  bool is_premium = 12;
+  int32 resolution_width = 13;
+  int32 resolution_height = 14;
+  int64 file_size_bytes = 15;
+  int32 sort_order = 16;
+  string metadata = 17;
+}
+
+// Delete image request
+message DeleteImageRequest {
+  string id = 1;
+}
+
+// Increment download count request
+message IncrementDownloadCountRequest {
+  string id = 1;
+}
+
+// Images Service - CRUD operations for managing images
+service ImagesService {
+  // Get featured images (for dashboard/homepage)
+  rpc GetFeaturedImages(GetFeaturedImagesRequest) returns (GetFeaturedImagesResponse);
+  
+  // Get a single image by ID
+  rpc GetImageById(GetImageByIdRequest) returns (Image);
+  
+  // List all images with pagination and filters
+  rpc ListImages(ListImagesRequest) returns (ListImagesResponse);
+  
+  // Get images by type (motivation, nature, etc.)
+  rpc GetImagesByType(GetImagesByTypeRequest) returns (GetImagesByTypeResponse);
+  
+  // Admin operations
+  rpc CreateImage(CreateImageRequest) returns (Image);
+  rpc UpdateImage(UpdateImageRequest) returns (Image);
+  rpc DeleteImage(DeleteImageRequest) returns (resilio.common.Empty);
+  
+  // Track downloads
+  rpc IncrementDownloadCount(IncrementDownloadCountRequest) returns (Image);
+}
