@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package resilio.tips;
+
+import "common.proto";
+
+option go_package = "github.com/resilio/backend/proto/tips";
+
+// Tips service for managing wellness tips and relationship advice
+
+// Tip entity
+message Tip {
+  string id = 1;
+  string title = 2;
+  string tip_text = 3;
+  string author = 4;
+  string author_icon_url = 5;
+  string category_id = 6;
+  repeated string preference_ids = 7;
+  string tip_type = 8; // 'relationship_booster', 'letting_go', 'communication', 'self_care', 'mindfulness', 'general'
+  bool is_featured = 9;
+  bool is_premium = 10;
+  int32 sort_order = 11;
+  string metadata = 12; // JSON string for flexible metadata
+  string created_at = 13;
+  string updated_at = 14;
+}
+
+// Get featured tips request
+message GetFeaturedTipsRequest {
+  int32 limit = 1;
+  repeated string preference_ids = 2;
+  string tip_type = 3; // Optional filter by tip type
+}
+
+// Get featured tips response
+message GetFeaturedTipsResponse {
+  repeated Tip tips = 1;
+}
+
+// Get tip by ID request
+message GetTipByIdRequest {
+  string id = 1;
+}
+
+// List tips request
+message ListTipsRequest {
+  resilio.common.PaginationRequest pagination = 1;
+  string category_id = 2;
+  bool is_featured = 3;
+  bool is_premium = 4;
+  string tip_type = 5;
+  repeated string preference_ids = 6;
+  int32 sort_order = 7;
+}
+
+// List tips response
+message ListTipsResponse {
+  repeated Tip tips = 1;
+  resilio.common.PaginationResponse pagination = 2;
+}
+
+// Create tip request
+message CreateTipRequest {
+  string title = 1;
+  string tip_text = 2;
+  string author = 3;
+  string author_icon_url = 4;
+  string category_id = 5;
+  repeated string preference_ids = 6;
+  string tip_type = 7;
+  bool is_featured = 8;
+  bool is_premium = 9;
+  int32 sort_order = 10;
+  string metadata = 11;
+}
+
+// Update tip request
+message UpdateTipRequest {
+  string id = 1;
+  optional string title = 2;
+  optional string tip_text = 3;
+  optional string author = 4;
+  optional string author_icon_url = 5;
+  optional string category_id = 6;
+  repeated string preference_ids = 7;
+  optional string tip_type = 8;
+  optional bool is_featured = 9;
+  optional bool is_premium = 10;
+  optional int32 sort_order = 11;
+  optional string metadata = 12;
+}
+
+// Delete tip request
+message DeleteTipRequest {
+  string id = 1;
+}
+
+// Get tips by type request
+message GetTipsByTypeRequest {
+  string tip_type = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+// Get tips by type response
+message GetTipsByTypeResponse {
+  repeated Tip tips = 1;
+  int32 total_count = 2;
+}
+
+// Tip service definition
+service TipService {
+  // Get featured tips
+  rpc GetFeaturedTips(GetFeaturedTipsRequest) returns (GetFeaturedTipsResponse);
+  
+  // Get tip by ID
+  rpc GetTipById(GetTipByIdRequest) returns (Tip);
+  
+  // List tips with filters
+  rpc ListTips(ListTipsRequest) returns (ListTipsResponse);
+  
+  // Get tips by type
+  rpc GetTipsByType(GetTipsByTypeRequest) returns (GetTipsByTypeResponse);
+  
+  // Create a new tip (admin only)
+  rpc CreateTip(CreateTipRequest) returns (Tip);
+  
+  // Update tip (admin only)
+  rpc UpdateTip(UpdateTipRequest) returns (Tip);
+  
+  // Delete tip (admin only)
+  rpc DeleteTip(DeleteTipRequest) returns (resilio.common.Empty);
+}

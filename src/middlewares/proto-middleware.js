@@ -14,7 +14,7 @@ const loadProtos = async () => {
       path.join(__dirname, '../../protos/quote.proto'),
       path.join(__dirname, '../../protos/audio.proto'),
       path.join(__dirname, '../../protos/video.proto'),
-
+      path.join(__dirname, '../../protos/tips.proto'),
     ]);
   }
   return root;
