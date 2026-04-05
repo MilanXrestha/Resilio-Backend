@@ -41,6 +41,7 @@ class UserUseCases {
           firebaseUid: userData.firebaseUid,
           displayName: userData.displayName || user.displayName,
           photoUrl: userData.photoUrl || user.photoUrl,
+          fcmToken: userData.fcmToken || user.fcmToken,
           lastLoginAt: new Date(),
         });
       }
@@ -50,7 +51,7 @@ class UserUseCases {
     console.log('Creating new user for Firebase UID:', userData.firebaseUid);
     return await this.userRepository.create({
       ...userData,
-      userRole: 'user',
+      userRole: userData.userRole || 'user',
       accountStatus: 'active',
       preferencesCompleted: false,
       language: 'en',

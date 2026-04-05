@@ -96,6 +96,7 @@ message CreateUserRequest {
   string photo_url = 5;
   string fcm_token = 6;
   string language = 7;
+  string user_role = 8;
 }
 
 // Create user response
@@ -181,6 +182,8 @@ message SyncUserRequest {
   string email = 2;
   string display_name = 3;
   string photo_url = 4;
+  string user_role = 5;
+  string fcm_token = 6;
 }
 
 // User service definition

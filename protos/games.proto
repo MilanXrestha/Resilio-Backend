@@ -1,0 +1,128 @@
+syntax = "proto3";
+
+package resilio.games;
+
+import "common.proto";
+
+option go_package = "github.com/resilio/backend/proto/games";
+
+// Games service for tracking mini-games progress
+
+message GameSession {
+  string id = 1;
+  string user_id = 2;
+  string game_type = 3;
+  string start_time = 4;
+  string end_time = 5;
+  int32 duration_seconds = 6;
+  int32 score = 7;
+  string metadata = 8;
+  string created_at = 9;
+}
+
+message MoodEntry {
+  string id = 1;
+  string user_id = 2;
+  int32 mood_score = 3;
+  string mood_label = 4;
+  string note = 5;
+  string entry_date = 6; // YYYY-MM-DD
+  string created_at = 7;
+}
+
+message Achievement {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string description = 4;
+  string icon_url = 5;
+  string requirement_type = 6;
+  int32 requirement_value = 7;
+}
+
+message UserAchievement {
+  string id = 1;
+  string user_id = 2;
+  string achievement_id = 3;
+  string unlocked_at = 4;
+  Achievement achievement = 5; // Populated externally
+}
+
+message Affirmation {
+  string id = 1;
+  string user_id = 2;
+  string text = 3;
+  string background_color = 4;
+  string icon_name = 5;
+  string created_at = 6;
+  repeated string words = 7;
+  int32 difficulty = 8;
+  string category = 9;
+}
+
+message SaveGameSessionRequest {
+  string game_type = 1;
+  int32 duration_seconds = 2;
+  int32 score = 3;
+  string metadata = 4;
+}
+
+message SaveMoodEntryRequest {
+  int32 mood_score = 1;
+  string mood_label = 2;
+  string note = 3;
+  string entry_date = 4;
+}
+
+message SaveAffirmationRequest {
+  string text = 1;
+  string background_color = 2;
+  string icon_name = 3;
+  repeated string words = 4;
+  int32 difficulty = 5;
+  string category = 6;
+}
+
+message GetUserGamesProgressRequest {
+  string user_id = 1;
+}
+
+message ListMoodEntriesRequest {
+  string user_id = 1;
+  string from_date = 2;
+  string to_date = 3;
+}
+
+message ListMoodEntriesResponse {
+  repeated MoodEntry entries = 1;
+}
+
+message ListUserAchievementsRequest {
+  string user_id = 1;
+}
+
+message ListUserAchievementsResponse {
+  repeated UserAchievement achievements = 1;
+}
+
+message ListAffirmationsRequest {
+  string user_id = 1;
+}
+
+message ListAffirmationsResponse {
+  repeated Affirmation affirmations = 1;
+}
+
+message DeleteAffirmationRequest {
+  string id = 1;
+}
+
+service GamesService {
+  rpc SaveGameSession(SaveGameSessionRequest) returns (GameSession);
+  rpc SaveMoodEntry(SaveMoodEntryRequest) returns (MoodEntry);
+  rpc ListMoodEntries(ListMoodEntriesRequest) returns (ListMoodEntriesResponse);
+  rpc ListUserAchievements(ListUserAchievementsRequest) returns (ListUserAchievementsResponse);
+  rpc SaveAffirmation(SaveAffirmationRequest) returns (Affirmation);
+  rpc ListAffirmations(ListAffirmationsRequest) returns (ListAffirmationsResponse);
+  rpc DeleteAffirmation(DeleteAffirmationRequest) returns (resilio.common.Empty);
+}

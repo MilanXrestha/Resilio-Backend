@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package resilio.appointment;
+
+import "common.proto";
+
+option go_package = "github.com/resilio/backend/proto/appointment";
+
+message Appointment {
+  string id = 1;
+  string patient_id = 2;
+  string therapist_id = 3;
+  string scheduled_time = 4; // ISO 8601
+  string status = 5; // "pending", "confirmed", "completed", "cancelled"
+  string payment_status = 6; // "pending", "paid", "failed"
+  string payment_transaction_id = 7;
+  string meeting_room_id = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message ScheduleAppointmentRequest {
+  string patient_id = 1;
+  string therapist_id = 2;
+  string scheduled_time = 3;
+}
+
+message GetAppointmentRequest {
+  string id = 1;
+}
+
+message ListAppointmentsRequest {
+  resilio.common.PaginationRequest pagination = 1;
+  string patient_id = 2; // optional filter
+  string therapist_id = 3; // optional filter
+  string status = 4; // optional filter
+}
+
+message ListAppointmentsResponse {
+  repeated Appointment appointments = 1;
+  resilio.common.PaginationResponse pagination = 2;
+}
+
+message UpdateAppointmentStatusRequest {
+  string id = 1;
+  string status = 2;
+}
+
+message VerifyPaymentRequest {
+  string appointment_id = 1;
+  string transaction_id = 2;
+}
+
+service AppointmentService {
+  rpc ScheduleAppointment(ScheduleAppointmentRequest) returns (Appointment);
+  rpc GetAppointment(GetAppointmentRequest) returns (Appointment);
+  rpc ListAppointments(ListAppointmentsRequest) returns (ListAppointmentsResponse);
+  rpc UpdateStatus(UpdateAppointmentStatusRequest) returns (Appointment);
+  rpc VerifyPayment(VerifyPaymentRequest) returns (Appointment);
+}

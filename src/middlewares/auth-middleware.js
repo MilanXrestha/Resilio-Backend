@@ -126,4 +126,18 @@ async function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = { authMiddleware };
+/**
+ * Middleware to extract user info from SuperTokens session
+ * for routes using SuperTokens verifySession()
+ */
+function addUserInfo(req, res, next) {
+  if (req.session) {
+    req.user = {
+      id: req.session.getUserId(),
+      provider: 'supertokens',
+    };
+  }
+  next();
+}
+
+module.exports = { authMiddleware, addUserInfo };

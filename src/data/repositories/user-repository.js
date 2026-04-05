@@ -196,6 +196,10 @@ class UserRepository {
         insertPayload.supertokens_uid = userData.superTokensUid;
       }
 
+      if (userData.fcmToken) {
+        insertPayload.fcm_token = userData.fcmToken;
+      }
+
       const { data, error } = await supabase
         .from('users')
         .insert(insertPayload)
@@ -230,6 +234,7 @@ class UserRepository {
       if (updateData.photoUrl !== undefined) updatePayload.photo_url = updateData.photoUrl;
       if (updateData.email !== undefined) updatePayload.email = updateData.email;
       if (updateData.preferencesCompleted !== undefined) updatePayload.preferences_completed = updateData.preferencesCompleted;
+      if (updateData.fcmToken !== undefined) updatePayload.fcm_token = updateData.fcmToken;
       if (updateData.lastLoginAt) {
         updatePayload.last_login_at = updateData.lastLoginAt instanceof Date
           ? updateData.lastLoginAt.toISOString()

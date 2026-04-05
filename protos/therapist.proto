@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package resilio.therapist;
+
+import "common.proto";
+
+option go_package = "github.com/resilio/backend/proto/therapist";
+
+message TherapistProfile {
+  string id = 1;
+  string user_id = 2;
+  string bio = 3;
+  string specialty = 4;
+  repeated string qualifications = 5;
+  int32 years_of_experience = 6;
+  bool is_verified = 7;
+  string consultation_fee = 8;
+  int32 rating = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message TimeSlot {
+  string start_time = 1; // ISO 8601
+  string end_time = 2;
+  bool is_booked = 3;
+}
+
+message Availability {
+  repeated TimeSlot slots = 1;
+}
+
+// Requests and Responses
+message GetTherapistProfileRequest {
+  string id = 1;
+}
+
+message GetTherapistByUserIdRequest {
+  string user_id = 1;
+}
+
+message ListTherapistsRequest {
+  resilio.common.PaginationRequest pagination = 1;
+  string specialty_tag = 2;
+}
+
+message ListTherapistsResponse {
+  repeated TherapistProfile therapists = 1;
+  resilio.common.PaginationResponse pagination = 2;
+}
+
+message CreateTherapistProfileRequest {
+  string user_id = 1;
+  string bio = 2;
+  string specialty = 3;
+  repeated string qualifications = 4;
+  int32 years_of_experience = 5;
+  string consultation_fee = 6;
+}
+
+message UpdateTherapistProfileRequest {
+  string id = 1;
+  optional string bio = 2;
+  optional string specialty = 3;
+  repeated string qualifications = 4;
+  optional int32 years_of_experience = 5;
+  optional bool is_verified = 6;
+  optional string consultation_fee = 7;
+}
+
+message MatchTherapistsRequest {
+  string primary_concern = 1;
+  repeated string preferred_activities = 2;
+}
+
+service TherapistService {
+  rpc GetProfile(GetTherapistProfileRequest) returns (TherapistProfile);
+  rpc GetProfileByUserId(GetTherapistByUserIdRequest) returns (TherapistProfile);
+  rpc ListProfiles(ListTherapistsRequest) returns (ListTherapistsResponse);
+  rpc CreateProfile(CreateTherapistProfileRequest) returns (TherapistProfile);
+  rpc UpdateProfile(UpdateTherapistProfileRequest) returns (TherapistProfile);
+  rpc MatchTherapists(MatchTherapistsRequest) returns (ListTherapistsResponse);
+}
