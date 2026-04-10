@@ -1,5 +1,8 @@
 const axios = require('axios');
 const { appointmentRepo } = require('./appointment-controller');
+const { fcmService } = require('../services/fcm-service');
+const { supabase } = require('../config/supabase-client');
+const { NotificationService } = require('../services/notification-service');
 
 /**
  * Controller to handle Esewa test payment verification
@@ -29,7 +32,55 @@ module.exports = {
           transaction_id
         );
         
-        // TODO: Fire FCM notification here via fcm-service to notify therapist
+        // 🔔 Notify patient that payment is confirmed
+        try {
+          const { data: patient } = await supabase
+            .from('users')
+            .select('fcm_token')
+            .eq('id', appointment.patientId)
+            .single();
+
+          if (patient?.fcm_token) {
+            await fcmService.notifyPaymentConfirmed(patient.fcm_token, appointment);
+          }
+
+          // Also notify the therapist that appointment is now confirmed
+          const { data: therapist } = await supabase
+            .from('users')
+            .select('fcm_token')
+            .eq('id', appointment.therapistId)
+            .single();
+
+          if (therapist?.fcm_token) {
+            await fcmService.sendToToken(
+              therapist.fcm_token,
+              'Appointment Confirmed',
+              `Your appointment has been confirmed with payment received.`,
+              { appointmentId: appointment.id, action: 'BOOKING_CONFIRMED' }
+            );
+          }
+
+          // Persist notifications in DB
+          await NotificationService.create({
+            userId: appointment.patientId,
+            title: 'Payment Confirmed',
+            body: 'Your session payment was successful and the appointment is confirmed.',
+            type: 'payment_confirmed',
+            actionType: 'OPEN_APPOINTMENT',
+            actionPayload: { appointmentId: appointment.id }
+          });
+
+          await NotificationService.create({
+            userId: appointment.therapistId,
+            title: 'Appointment Confirmed',
+            body: `Payment received. Appointment on ${new Date(appointment.scheduledTime).toLocaleString()} is confirmed.`,
+            type: 'booking_confirmed',
+            actionType: 'OPEN_APPOINTMENT',
+            actionPayload: { appointmentId: appointment.id }
+          });
+        } catch (notifErr) {
+          console.error('Failed to send payment notification:', notifErr.message);
+        }
 
         if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
           res.proto(appointment, 'resilio.appointment.Appointment');

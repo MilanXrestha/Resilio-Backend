@@ -1,4 +1,6 @@
 const { supabase } = require('../config/supabase-client');
+const { fcmService } = require('../services/fcm-service');
+const { NotificationService } = require('../services/notification-service');
 
 class AppointmentRepository {
   async createAppointment(data) {
@@ -92,6 +94,32 @@ module.exports = {
         meetingRoomId
       });
 
+      // 🔔 Notify therapist of new booking
+      try {
+        const { data: therapist } = await supabase
+          .from('users')
+          .select('fcm_token, display_name')
+          .eq('id', therapist_id)
+          .single();
+
+        if (therapist?.fcm_token) {
+          await fcmService.notifyNewBooking(therapist.fcm_token, appointment);
+        }
+
+        // Persist notification in DB
+        await NotificationService.create({
+          userId: therapist_id,
+          title: 'New Appointment Booking',
+          body: `You have a new appointment booked for ${new Date(appointment.scheduledTime).toLocaleString()}`,
+          type: 'new_booking',
+          actionType: 'OPEN_APPOINTMENT',
+          actionPayload: { appointmentId: appointment.id }
+        });
+      } catch (notifErr) {
+        // Non-fatal — appointment was created, notification failure should not block response
+        console.error('Failed to send new booking notification:', notifErr.message);
+      }
+
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         res.proto(appointment, 'resilio.appointment.Appointment');
         return;
@@ -119,7 +147,16 @@ module.exports = {
 
   async listAppointments(req, res) {
     try {
-      const { patient_id, therapist_id, status } = req.query;
+      let { patient_id, therapist_id, status } = req.query;
+
+      // Enforce data isolation based on role
+      if (req.user?.role === 'customer') {
+        patient_id = req.user.id;
+      } else if (req.user?.role === 'therapist') {
+        therapist_id = req.user.id;
+      }
+      // Admin sees everything as requested.
+
       const { appointments, total } = await appointmentRepo.listAppointments(patient_id, therapist_id, status);
       
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {

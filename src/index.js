@@ -34,6 +34,8 @@ const passwordlessRoutes = require('./routes/passwordless-routes');
 const favoriteRoutes = require('./routes/favorite-routes');
 const subscriptionRoutes = require('./routes/subscription-routes');
 const gamesRoutes = require('./routes/games-routes');
+const notificationRoutes = require('./routes/notification-routes');
+const adminRoutes = require('./routes/admin-routes');
 
 // Import middleware
 const { protoMiddleware } = require('./middlewares/proto-middleware');
@@ -84,6 +86,8 @@ app.use('/api/v1/subscriptions', subscriptionRoutes);
 app.use('/api/v1/games', gamesRoutes);
 app.use('/api/v1/therapists', require('./routes/therapist-routes'));
 app.use('/api/v1/appointments', require('./routes/appointment-routes'));
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 // SuperTokens error handler
 app.use(stErrorHandler());

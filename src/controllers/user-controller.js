@@ -82,14 +82,25 @@ module.exports = {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      // TODO: Implement full update logic with validation
-      const user = await userUseCases.getUserById(userId);
+      const { displayName, photoUrl, username, language, availabilityJson, timezone } = req.body;
 
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+      // Update users table
+      const updated = await userRepository.update(userId, {
+        displayName,
+        photoUrl,
+        username,
+        language,
+        timezone,
+      });
+
+      // If availability is provided, attempt to update therapist_profiles
+      if (availabilityJson && req.user?.role === 'therapist') {
+        const { TherapistRepository } = require('../data/repositories/therapist-repository');
+        const therapistRepo = new TherapistRepository();
+        await therapistRepo.updateProfileByUserId(userId, { availability_json: availabilityJson });
       }
 
-      res.json({ message: 'Update endpoint ready', user });
+      res.json({ user: updated });
     } catch (error) {
       console.error('Update user error:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -211,6 +222,23 @@ module.exports = {
       res.json({ user });
     } catch (error) {
       console.error('Sync user error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  // PUT /api/v1/users/me/fcm-token — Update the device FCM push token
+  async updateFcmToken(req, res) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+      const { fcm_token } = req.body;
+      if (!fcm_token) return res.status(400).json({ error: 'fcm_token is required' });
+
+      const updated = await userRepository.update(userId, { fcmToken: fcm_token });
+      res.json({ success: true, fcmToken: updated.fcmToken });
+    } catch (error) {
+      console.error('updateFcmToken error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },

@@ -81,6 +81,27 @@ class TherapistRepository {
     return this._mapToProfile(data);
   }
 
+  async updateProfileByUserId(userId, updateData) {
+    if (!supabase) return null;
+    const payload = {};
+    if (updateData.bio !== undefined) payload.bio = updateData.bio;
+    if (updateData.specialty !== undefined) payload.specialty = updateData.specialty;
+    if (updateData.qualifications !== undefined) payload.qualifications = updateData.qualifications;
+    if (updateData.yearsOfExperience !== undefined) payload.years_of_experience = updateData.yearsOfExperience;
+    if (updateData.isVerified !== undefined) payload.is_verified = updateData.isVerified;
+    if (updateData.consultationFee !== undefined) payload.consultation_fee = updateData.consultationFee;
+    if (updateData.availability_json !== undefined) payload.availability_json = updateData.availability_json;
+
+    const { data, error } = await supabase
+      .from('therapist_profiles')
+      .update(payload)
+      .eq('user_id', userId)
+      .select()
+      .single();
+    if (error) throw error;
+    return this._mapToProfile(data);
+  }
+
   _mapToProfile(row) {
     return {
       id: row.id,
