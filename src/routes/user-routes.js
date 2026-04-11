@@ -11,6 +11,7 @@ router.post('/sync', userController.syncUser);
 // Protected routes (require Firebase auth)
 router.get('/me', authMiddleware, userController.getCurrentUser);
 router.put('/me', authMiddleware, userController.updateCurrentUser);
+router.patch('/me', authMiddleware, userController.updateCurrentUser); // Flutter app uses PATCH
 router.put('/me/fcm-token', authMiddleware, userController.updateFcmToken);
 router.delete('/me', authMiddleware, userController.deleteCurrentUser);
 router.get('/:id', authMiddleware, userController.getUserById);

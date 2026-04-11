@@ -5,6 +5,7 @@ const audioController = require('../controllers/audio-controller');
 const router = express.Router();
 
 // Public routes - no authentication required
+router.get('/', audioController.getAllAudio);
 router.get('/featured', audioController.getFeaturedAudio);
 router.get('/category/:categoryId', audioController.getAudioByCategory);
 router.get('/:audioId', audioController.getAudioTrack);

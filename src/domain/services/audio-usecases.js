@@ -9,6 +9,13 @@ class AudioUseCases {
   }
 
   /**
+   * Get all audio tracks
+   */
+  async getAllAudio(limit = 100, offset = 0) {
+    return await this.audioRepository.findAll(limit, offset);
+  }
+
+  /**
    * Get featured audio tracks
    */
   async getFeaturedAudio(limit = 10, moodFilters = []) {

@@ -24,10 +24,12 @@ class UserUseCases {
     let user = await this.userRepository.findByFirebaseUid(userData.firebaseUid);
 
     if (user) {
-      // User already linked to this Firebase UID — just update metadata
+      // User already linked to this Firebase UID — just update metadata.
+      // Never overwrite a saved custom photo (e.g. Cloudinary) with the
+      // OAuth provider's avatar — prefer whatever is already in the DB.
       return await this.userRepository.update(user.id, {
         displayName: userData.displayName || user.displayName,
-        photoUrl: userData.photoUrl || user.photoUrl,
+        photoUrl: user.photoUrl || userData.photoUrl,
         fcmToken: userData.fcmToken || user.fcmToken,
         lastLoginAt: new Date(),
       });
@@ -45,11 +47,12 @@ class UserUseCases {
           user.id
         );
 
-        // Link Firebase UID to the existing account
+        // Link Firebase UID to the existing account.
+        // Same rule: keep any existing custom photo, fall back to OAuth avatar.
         return await this.userRepository.update(user.id, {
           firebaseUid: userData.firebaseUid,
           displayName: userData.displayName || user.displayName,
-          photoUrl: userData.photoUrl || user.photoUrl,
+          photoUrl: user.photoUrl || userData.photoUrl,
           fcmToken: userData.fcmToken || user.fcmToken,
           lastLoginAt: new Date(),
         });

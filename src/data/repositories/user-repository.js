@@ -227,19 +227,39 @@ class UserRepository {
 
       const updatePayload = {};
 
-      // Map all possible fields
+      // Map all possible fields (only include non-empty values to avoid overwriting with blanks)
       if (updateData.firebaseUid !== undefined) updatePayload.firebase_uid = updateData.firebaseUid;
       if (updateData.superTokensUid !== undefined) updatePayload.supertokens_uid = updateData.superTokensUid;
-      if (updateData.displayName !== undefined) updatePayload.display_name = updateData.displayName;
-      if (updateData.photoUrl !== undefined) updatePayload.photo_url = updateData.photoUrl;
-      if (updateData.email !== undefined) updatePayload.email = updateData.email;
+      if (updateData.email !== undefined && updateData.email) updatePayload.email = updateData.email;
       if (updateData.preferencesCompleted !== undefined) updatePayload.preferences_completed = updateData.preferencesCompleted;
-      if (updateData.fcmToken !== undefined) updatePayload.fcm_token = updateData.fcmToken;
       if (updateData.lastLoginAt) {
         updatePayload.last_login_at = updateData.lastLoginAt instanceof Date
           ? updateData.lastLoginAt.toISOString()
           : new Date().toISOString();
       }
+
+      // User-editable profile fields — only write if the value is a non-empty string
+      const stringFields = {
+        displayName: 'display_name',
+        photoUrl: 'photo_url',
+        username: 'username',
+        phoneNumber: 'phone_number',
+        dateOfBirth: 'date_of_birth',
+        gender: 'gender',
+        timezone: 'timezone',
+        language: 'language',
+        fcmToken: 'fcm_token',
+      };
+
+      for (const [camel, snake] of Object.entries(stringFields)) {
+        const val = updateData[camel];
+        if (val !== undefined && val !== null && val !== '') {
+          updatePayload[snake] = val;
+        }
+      }
+
+      // Always bump updated_at
+      updatePayload.updated_at = new Date().toISOString();
 
       const { data, error } = await supabase
         .from('users')

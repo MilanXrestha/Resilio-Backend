@@ -74,7 +74,7 @@ module.exports = {
     }
   },
 
-  // PUT /api/v1/users/me - Update current user profile (protected)
+  // PUT/PATCH /api/v1/users/me - Update current user profile (protected)
   async updateCurrentUser(req, res) {
     try {
       const userId = req.user?.id;
@@ -82,15 +82,36 @@ module.exports = {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const { displayName, photoUrl, username, language, availabilityJson, timezone } = req.body;
+      // req.body is either proto-decoded (camelCase) or JSON — same shape either way
+      const {
+        displayName,
+        photoUrl,
+        username,
+        language,
+        timezone,
+        phoneNumber,
+        dateOfBirth,
+        gender,
+        fcmToken,
+        availabilityJson,
+      } = req.body;
 
-      // Update users table
+      console.log('UpdateCurrentUser - userId:', userId, 'fields:', {
+        displayName, photoUrl, username, language, timezone,
+        phoneNumber, dateOfBirth, gender, fcmToken: fcmToken ? '[set]' : undefined,
+      });
+
+      // Update users table with all provided fields
       const updated = await userRepository.update(userId, {
         displayName,
         photoUrl,
         username,
         language,
         timezone,
+        phoneNumber,
+        dateOfBirth,
+        gender,
+        fcmToken,
       });
 
       // If availability is provided, attempt to update therapist_profiles
@@ -98,6 +119,32 @@ module.exports = {
         const { TherapistRepository } = require('../data/repositories/therapist-repository');
         const therapistRepo = new TherapistRepository();
         await therapistRepo.updateProfileByUserId(userId, { availability_json: availabilityJson });
+      }
+
+      // Respond with protobuf if client accepts it, otherwise JSON
+      if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
+        const userProto = {
+          id: updated.id,
+          firebaseUid: updated.firebaseUid || '',
+          email: updated.email,
+          username: updated.username || '',
+          displayName: updated.displayName || '',
+          photoUrl: updated.photoUrl || '',
+          phoneNumber: updated.phoneNumber || '',
+          dateOfBirth: updated.dateOfBirth || '',
+          gender: updated.gender || '',
+          userRole: updated.userRole,
+          accountStatus: updated.accountStatus,
+          preferencesCompleted: updated.preferencesCompleted,
+          fcmToken: updated.fcmToken || '',
+          timezone: updated.timezone || '',
+          language: updated.language,
+          createdAt: updated.createdAt.toISOString(),
+          updatedAt: updated.updatedAt.toISOString(),
+          lastLoginAt: updated.lastLoginAt?.toISOString() || '',
+        };
+        res.proto(userProto, 'resilio.user.User');
+        return;
       }
 
       res.json({ user: updated });

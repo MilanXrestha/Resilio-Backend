@@ -116,8 +116,8 @@ const listImages = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 20;
     const offset = parseInt(req.query.offset, 10) || 0;
     const categoryId = req.query.categoryId;
-    const isFeatured = req.query.isFeatured === 'true';
-    const isPremium = req.query.isPremium === 'true';
+    const isFeatured = req.query.isFeatured !== undefined ? req.query.isFeatured === 'true' : null;
+    const isPremium = req.query.isPremium !== undefined ? req.query.isPremium === 'true' : null;
     const imageType = req.query.imageType;
     const preferenceIds = req.query.preferenceIds?.split(',') || [];
 

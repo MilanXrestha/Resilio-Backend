@@ -5,6 +5,42 @@ const { supabase } = require('../../config/supabase-client');
  */
 class AudioRepository {
   /**
+   * Find all audio tracks
+   */
+  async findAll(limit = 100, offset = 0) {
+    try {
+      if (!supabase) {
+        console.error('Supabase client not initialized');
+        return { tracks: [], total: 0 };
+      }
+
+      const { count, error: countError } = await supabase
+        .from('audio_tracks')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true);
+
+      if (countError) throw countError;
+
+      const { data, error } = await supabase
+        .from('audio_tracks')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (error) throw error;
+
+      return {
+        tracks: data.map(this._mapToAudioTrack),
+        total: count || 0,
+      };
+    } catch (error) {
+      console.error('AudioRepository.findAll error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Find featured audio tracks
    */
   async findFeatured(limit = 10, moodFilters = []) {

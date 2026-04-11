@@ -7,6 +7,50 @@ const audioRepository = new AudioRepository();
 const audioUseCases = new AudioUseCases(audioRepository);
 
 module.exports = {
+  // GET /api/v1/audio - Get all audio tracks (public)
+  async getAllAudio(req, res) {
+    try {
+      const limit = parseInt(req.query.limit) || 100;
+      const offset = parseInt(req.query.offset) || 0;
+
+      const result = await audioUseCases.getAllAudio(limit, offset);
+
+      if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
+        const responseProto = {
+          tracks: result.tracks.map(track => ({
+            id: track.id,
+            title: track.title,
+            description: track.description || '',
+            artistName: track.artistName || '',
+            audioUrl: track.audioUrl,
+            coverImageUrl: track.coverImageUrl || '',
+            thumbnailUrl: track.thumbnailUrl || '',
+            durationSeconds: track.durationSeconds,
+            categoryId: track.categoryId || '',
+            moodTags: track.moodTags,
+            isFeatured: track.isFeatured,
+            isPremium: track.isPremium,
+            sortOrder: track.sortOrder,
+            playCount: track.playCount || 0,
+            likeCount: track.likeCount || 0,
+            isActive: track.isActive,
+            createdAt: track.createdAt.toISOString(),
+            updatedAt: track.updatedAt.toISOString(),
+          })),
+          total: result.total,
+        };
+
+        res.proto(responseProto, 'resilio.audio.GetAudioTracksResponse');
+        return;
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Get all audio error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
   // GET /api/v1/audio/featured - Get featured audio tracks (public)
   async getFeaturedAudio(req, res) {
     try {
