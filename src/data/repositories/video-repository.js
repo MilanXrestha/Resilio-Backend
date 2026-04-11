@@ -186,6 +186,82 @@ class VideoRepository {
   }
 
   /**
+   * Create a new video
+   */
+  async create(videoData) {
+    try {
+      const { data, error } = await supabase
+        .from('video_tracks')
+        .insert([{
+          title: videoData.title,
+          description: videoData.description,
+          artist_name: videoData.artistName,
+          video_url: videoData.videoUrl,
+          thumbnail_url: videoData.thumbnailUrl,
+          category_id: videoData.categoryId,
+          video_type: videoData.videoType || 'long',
+          is_featured: videoData.isFeatured || false,
+          is_premium: videoData.isPremium || false,
+          is_active: videoData.isActive !== false,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return this._mapToEntity(data);
+    } catch (error) {
+      console.error('VideoRepository.create error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update a video
+   */
+  async update(videoId, videoData) {
+    try {
+      const mappedData = {};
+      if (videoData.title !== undefined) mappedData.title = videoData.title;
+      if (videoData.description !== undefined) mappedData.description = videoData.description;
+      if (videoData.artistName !== undefined) mappedData.artist_name = videoData.artistName;
+      if (videoData.videoUrl !== undefined) mappedData.video_url = videoData.videoUrl;
+      if (videoData.thumbnailUrl !== undefined) mappedData.thumbnail_url = videoData.thumbnailUrl;
+      if (videoData.categoryId !== undefined) mappedData.category_id = videoData.categoryId;
+      if (videoData.videoType !== undefined) mappedData.video_type = videoData.videoType;
+      if (videoData.isFeatured !== undefined) mappedData.is_featured = videoData.isFeatured;
+      if (videoData.isPremium !== undefined) mappedData.is_premium = videoData.isPremium;
+      if (videoData.isActive !== undefined) mappedData.is_active = videoData.isActive;
+
+      const { data, error } = await supabase
+        .from('video_tracks')
+        .update(mappedData)
+        .eq('id', videoId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return this._mapToEntity(data);
+    } catch (error) {
+      console.error('VideoRepository.update error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a video
+   */
+  async delete(videoId) {
+    try {
+      const { error } = await supabase.from('video_tracks').delete().eq('id', videoId);
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('VideoRepository.delete error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Map database row to entity object
    */
   _mapToEntity(row) {

@@ -181,15 +181,15 @@ module.exports = {
 
   async syncUser(req, res) {
     try {
-      const { firebaseUid, email, displayName, photoUrl, user_role, fcm_token } = req.body;
+      const { firebaseUid, email, displayName, photoUrl, userRole, fcmToken } = req.body;
 
       const user = await userUseCases.syncUser({
         firebaseUid,
         email,
         displayName,
         photoUrl,
-        userRole: user_role,
-        fcmToken: fcm_token
+        userRole: userRole,
+        fcmToken: fcmToken
       });
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {

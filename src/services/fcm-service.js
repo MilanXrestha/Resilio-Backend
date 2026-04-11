@@ -72,6 +72,44 @@ class FCMService {
       { appointmentId: appointment.id, action: 'PAYMENT_CONFIRMED' }
     );
   }
+
+  /**
+   * Notify patient of an incoming call from their therapist (high priority)
+   */
+  async notifyIncomingCall(patientFcmToken, appointment, therapistName) {
+    if (!admin.apps.length || !patientFcmToken) {
+      console.log('Mock FCM Incoming Call Push:', { patientFcmToken, appointment });
+      return false;
+    }
+    try {
+      const message = {
+        notification: {
+          title: `📞 ${therapistName || 'Your therapist'} is calling`,
+          body: 'Tap to join your therapy session now.',
+        },
+        data: {
+          appointmentId: String(appointment.id),
+          roomId: String(appointment.meetingRoomId || appointment.meeting_room_id || ''),
+          action: 'INCOMING_CALL',
+        },
+        android: {
+          priority: 'high',
+          notification: { priority: 'max', channelId: 'resilio_calls' },
+        },
+        apns: {
+          headers: { 'apns-priority': '10' },
+          payload: { aps: { sound: 'default', badge: 1 } },
+        },
+        token: patientFcmToken,
+      };
+      const response = await admin.messaging().send(message);
+      console.log('Incoming call FCM sent:', response);
+      return true;
+    } catch (error) {
+      console.error('Error sending incoming call FCM:', error);
+      return false;
+    }
+  }
 }
 
 const fcmService = new FCMService();

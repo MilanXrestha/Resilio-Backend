@@ -86,6 +86,24 @@ async function authMiddleware(req, res, next) {
         firebaseUid: decodedToken.uid,
         provider: 'firebase',
       };
+
+      // Enrich with role from Supabase (non-fatal if lookup fails)
+      try {
+        const { supabase } = require('../config/supabase-client');
+        if (supabase) {
+          const { data: dbUser } = await supabase
+            .from('users')
+            .select('id, user_role')
+            .eq('firebase_uid', decodedToken.uid)
+            .single();
+          if (dbUser) {
+            req.user.id = dbUser.id;          // use DB UUID, not Firebase UID
+            req.user.role = dbUser.user_role;
+          }
+        }
+      } catch (roleErr) {
+        console.warn('⚠ Could not fetch user role from DB:', roleErr.message);
+      }
     } else {
       // ── SuperTokens path ──────────────────────────────────────────────────
       // Lazy-require so this module is only loaded when needed.

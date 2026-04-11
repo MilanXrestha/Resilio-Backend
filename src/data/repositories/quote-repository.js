@@ -116,6 +116,78 @@ class QuoteRepository {
   }
 
   /**
+   * Create a new quote
+   */
+  async create(quoteData) {
+    try {
+      const { data, error } = await supabase
+        .from('quotes')
+        .insert([{
+          quote_text: quoteData.quoteText,
+          author: quoteData.author,
+          author_icon_url: quoteData.authorIconUrl,
+          category_id: quoteData.categoryId,
+          preference_ids: quoteData.preferenceIds || [],
+          is_featured: quoteData.isFeatured || false,
+          is_premium: quoteData.isPremium || false,
+          quote_type: quoteData.quoteType,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return this._mapToQuote(data);
+    } catch (error) {
+      console.error('QuoteRepository.create error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update a quote
+   */
+  async update(quoteId, quoteData) {
+    try {
+      const mappedData = {};
+      if (quoteData.quoteText !== undefined) mappedData.quote_text = quoteData.quoteText;
+      if (quoteData.author !== undefined) mappedData.author = quoteData.author;
+      if (quoteData.authorIconUrl !== undefined) mappedData.author_icon_url = quoteData.authorIconUrl;
+      if (quoteData.categoryId !== undefined) mappedData.category_id = quoteData.categoryId;
+      if (quoteData.preferenceIds !== undefined) mappedData.preference_ids = quoteData.preferenceIds;
+      if (quoteData.isFeatured !== undefined) mappedData.is_featured = quoteData.isFeatured;
+      if (quoteData.isPremium !== undefined) mappedData.is_premium = quoteData.isPremium;
+      if (quoteData.quoteType !== undefined) mappedData.quote_type = quoteData.quoteType;
+
+      const { data, error } = await supabase
+        .from('quotes')
+        .update(mappedData)
+        .eq('id', quoteId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return this._mapToQuote(data);
+    } catch (error) {
+      console.error('QuoteRepository.update error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a quote
+   */
+  async delete(quoteId) {
+    try {
+      const { error } = await supabase.from('quotes').delete().eq('id', quoteId);
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('QuoteRepository.delete error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Map database row to quote object
    * @private
    */

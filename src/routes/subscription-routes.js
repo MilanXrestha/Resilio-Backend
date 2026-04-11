@@ -1,13 +1,11 @@
 const express = require('express');
-const { verifySession } = require('supertokens-node/recipe/session/framework/express');
 const subscriptionController = require('../controllers/subscription-controller');
-const { addUserInfo } = require('../middlewares/auth-middleware');
+const { authMiddleware } = require('../middlewares/auth-middleware');
 
 const router = express.Router();
 
-// Apply auth middleware to all routes
-router.use(verifySession());
-router.use(addUserInfo);
+// Apply unified auth middleware (supports both Firebase and SuperTokens)
+router.use(authMiddleware);
 
 // Subscription routes
 router.get('/me', subscriptionController.getSubscription);

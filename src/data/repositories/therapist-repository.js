@@ -5,7 +5,7 @@ class TherapistRepository {
     if (!supabase) return null;
     const { data, error } = await supabase
       .from('therapist_profiles')
-      .select('*, users!inner(*)')
+      .select('*, users(*)')
       .eq('id', id)
       .single();
     if (error || !data) return null;
@@ -16,7 +16,7 @@ class TherapistRepository {
     if (!supabase) return null;
     const { data, error } = await supabase
       .from('therapist_profiles')
-      .select('*, users!inner(*)')
+      .select('*, users(*)')
       .eq('user_id', userId)
       .single();
     if (error || !data) return null;
@@ -25,16 +25,16 @@ class TherapistRepository {
 
   async listProfiles(specialtyTag = null, limit = 10, offset = 0) {
     if (!supabase) return { therapists: [], total: 0 };
-    let query = supabase.from('therapist_profiles').select('*, users!inner(*)', { count: 'exact' });
-    
+    let query = supabase.from('therapist_profiles').select('*, users(*)', { count: 'exact' });
+
     if (specialtyTag) {
       query = query.ilike('specialty', `%${specialtyTag}%`);
     }
-    
+
     query = query.range(offset, offset + limit - 1);
     const { data, error, count } = await query;
     if (error || !data) return { therapists: [], total: 0 };
-    
+
     return {
       therapists: data.map(this._mapToProfile),
       total: count || 0
@@ -103,16 +103,22 @@ class TherapistRepository {
   }
 
   _mapToProfile(row) {
+    const user = row.users || {};
+    const displayName = user.display_name || user.username || user.email || '';
     return {
       id: row.id,
       userId: row.user_id,
+      displayName,
+      profileImageUrl: user.photo_url || null,
       bio: row.bio,
       specialty: row.specialty,
+      specialtyTags: row.specialty_tags || [],
       qualifications: row.qualifications || [],
-      yearsOfExperience: row.years_of_experience,
-      isVerified: row.is_verified,
-      consultationFee: row.consultation_fee,
-      rating: row.rating,
+      yearsOfExperience: row.years_of_experience || 0,
+      isVerified: row.is_verified || false,
+      consultationFee: row.consultation_fee || 0,
+      rating: row.rating || 0,
+      totalReviews: row.total_reviews || 0,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };

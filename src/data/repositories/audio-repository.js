@@ -148,6 +148,80 @@ class AudioRepository {
   }
 
   /**
+   * Create a new audio track
+   */
+  async create(audioData) {
+    try {
+      const { data, error } = await supabase
+        .from('audio_tracks')
+        .insert([{
+          title: audioData.title,
+          description: audioData.description,
+          artist_name: audioData.artistName,
+          audio_url: audioData.audioUrl,
+          cover_image_url: audioData.coverImageUrl,
+          category_id: audioData.categoryId,
+          is_featured: audioData.isFeatured || false,
+          is_premium: audioData.isPremium || false,
+          is_active: audioData.isActive !== false,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return this._mapToAudioTrack(data);
+    } catch (error) {
+      console.error('AudioRepository.create error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update an audio track
+   */
+  async update(audioId, audioData) {
+    try {
+      const mappedData = {};
+      if (audioData.title !== undefined) mappedData.title = audioData.title;
+      if (audioData.description !== undefined) mappedData.description = audioData.description;
+      if (audioData.artistName !== undefined) mappedData.artist_name = audioData.artistName;
+      if (audioData.audioUrl !== undefined) mappedData.audio_url = audioData.audioUrl;
+      if (audioData.coverImageUrl !== undefined) mappedData.cover_image_url = audioData.coverImageUrl;
+      if (audioData.categoryId !== undefined) mappedData.category_id = audioData.categoryId;
+      if (audioData.isFeatured !== undefined) mappedData.is_featured = audioData.isFeatured;
+      if (audioData.isPremium !== undefined) mappedData.is_premium = audioData.isPremium;
+      if (audioData.isActive !== undefined) mappedData.is_active = audioData.isActive;
+
+      const { data, error } = await supabase
+        .from('audio_tracks')
+        .update(mappedData)
+        .eq('id', audioId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return this._mapToAudioTrack(data);
+    } catch (error) {
+      console.error('AudioRepository.update error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete an audio track
+   */
+  async delete(audioId) {
+    try {
+      const { error } = await supabase.from('audio_tracks').delete().eq('id', audioId);
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('AudioRepository.delete error:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Map database row to audio track object
    * @private
    */
