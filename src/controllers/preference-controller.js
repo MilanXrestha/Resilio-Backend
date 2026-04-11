@@ -88,7 +88,15 @@ module.exports = {
         return res.status(400).json({ error: 'preferenceIds must be an array' });
       }
 
-      const updatedPrefs = await preferenceUseCases.saveUserPreferences(userId, preferenceIds);
+      let updatedPrefs;
+      try {
+        updatedPrefs = await preferenceUseCases.saveUserPreferences(userId, preferenceIds);
+      } catch (innerErr) {
+        if (innerErr.message === 'User not found') {
+          return res.status(404).json({ error: 'User not found — sync user first' });
+        }
+        throw innerErr;
+      }
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const preferencesProto = updatedPrefs.map(userPref => ({

@@ -98,9 +98,8 @@ class ImagesRepository {
       .from('images')
       .select(`
         *,
-        categories (id, name),
-        count=images.count
-      `, { count: 'exact', head: false });
+        categories (id, name)
+      `, { count: 'exact' });
 
     // Apply filters
     if (categoryId) {
@@ -123,7 +122,7 @@ class ImagesRepository {
       query = query.contains('preference_ids', preferenceIds);
     }
 
-    const { data, error } = await query
+    const { data, error, count } = await query
       .range(offset, offset + limit - 1)
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false });
@@ -132,7 +131,7 @@ class ImagesRepository {
 
     return {
       images: data.map(this._mapToImage),
-      total: parseInt(data[0]?.count || '0', 10),
+      total: count || 0,
     };
   }
 
@@ -140,12 +139,11 @@ class ImagesRepository {
    * Find images by type
    */
   async findByType(imageType, limit = 20, offset = 0) {
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from('images')
       .select(`
         *,
-        categories (id, name),
-        count=images.count
+        categories (id, name)
       `, { count: 'exact' })
       .eq('image_type', imageType)
       .order('sort_order', { ascending: true })
@@ -156,7 +154,7 @@ class ImagesRepository {
 
     return {
       images: data.map(this._mapToImage),
-      total: parseInt(data[0]?.count || '0', 10),
+      total: count || 0,
     };
   }
 

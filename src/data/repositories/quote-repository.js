@@ -85,8 +85,7 @@ class QuoteRepository {
         .from('quotes')
         .select(`
           *,
-          categories (id, name),
-          count
+          categories (id, name)
         `, { count: 'exact' });
 
       // Apply filters

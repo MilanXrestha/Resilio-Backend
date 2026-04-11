@@ -13,13 +13,22 @@ class UserUseCases {
   }
 
   async syncUser(userData) {
+    // Normalize userRole: the Flutter app sends 'customer' for regular users but
+    // the DB CHECK constraint only allows 'user', 'therapist', 'admin'.
+    const allowedRoles = ['user', 'therapist', 'admin'];
+    const normalizedRole = allowedRoles.includes(userData.userRole)
+      ? userData.userRole
+      : 'user';
+
     // 1. Check if user exists by Firebase UID
     let user = await this.userRepository.findByFirebaseUid(userData.firebaseUid);
 
     if (user) {
-      // User already linked to this Firebase UID — just update
+      // User already linked to this Firebase UID — just update metadata
       return await this.userRepository.update(user.id, {
-        ...userData,
+        displayName: userData.displayName || user.displayName,
+        photoUrl: userData.photoUrl || user.photoUrl,
+        fcmToken: userData.fcmToken || user.fcmToken,
         lastLoginAt: new Date(),
       });
     }
@@ -48,10 +57,14 @@ class UserUseCases {
     }
 
     // 3. No existing user found — create new
-    console.log('Creating new user for Firebase UID:', userData.firebaseUid);
+    console.log('Creating new user for Firebase UID:', userData.firebaseUid, 'role:', normalizedRole);
     return await this.userRepository.create({
-      ...userData,
-      userRole: userData.userRole || 'user',
+      firebaseUid: userData.firebaseUid,
+      email: userData.email,
+      displayName: userData.displayName,
+      photoUrl: userData.photoUrl,
+      fcmToken: userData.fcmToken,
+      userRole: normalizedRole,
       accountStatus: 'active',
       preferencesCompleted: false,
       language: 'en',

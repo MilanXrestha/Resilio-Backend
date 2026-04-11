@@ -90,10 +90,11 @@ class VideoRepository {
   /**
    * Get short videos (reels/TikTok style)
    */
-  async getShortVideos({ limit = 20, offset = 0 } = {}) {
+  async getShortVideos({ categoryId = null, limit = 20, offset = 0 } = {}) {
     try {
       const result = await this.getVideos({
         videoType: 'short',
+        categoryId,
         limit,
         offset
       });

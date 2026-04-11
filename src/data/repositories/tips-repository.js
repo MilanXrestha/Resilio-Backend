@@ -93,8 +93,7 @@ class TipsRepository {
         .from('tips')
         .select(`
           *,
-          categories (id, name),
-          count
+          categories (id, name)
         `, { count: 'exact' });
 
       // Apply filters
@@ -143,8 +142,7 @@ class TipsRepository {
         .from('tips')
         .select(`
           *,
-          categories (id, name),
-          count
+          categories (id, name)
         `, { count: 'exact' })
         .eq('tip_type', tipType)
         .order('sort_order', { ascending: true })
