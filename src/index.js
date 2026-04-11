@@ -38,6 +38,7 @@ const notificationRoutes = require('./routes/notification-routes');
 const adminRoutes = require('./routes/admin-routes');
 const therapistPortalRoutes = require('./routes/therapist-portal-routes');
 const paymentRoutes = require('./routes/payment-routes');
+const webrtcSignalRoutes = require('./routes/webrtc-signal-routes');
 
 // Import middleware
 const { protoMiddleware } = require('./middlewares/proto-middleware');
@@ -92,6 +93,7 @@ app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/therapist-portal', therapistPortalRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/webrtc', webrtcSignalRoutes);
 
 // SuperTokens error handler
 app.use(stErrorHandler());

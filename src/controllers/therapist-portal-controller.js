@@ -45,7 +45,7 @@ function mapAppointment(row) {
           id: row.patient_profile.id,
           displayName: row.patient_profile.display_name,
           email: row.patient_profile.email,
-          profilePictureUrl: row.patient_profile.profile_picture_url,
+          profilePictureUrl: row.patient_profile.photo_url,
           fcmToken: row.patient_profile.fcm_token,
         }
       : null,
@@ -131,7 +131,7 @@ module.exports = {
       // Next appointment today
       const { data: nextRows } = await supabase
         .from('appointments')
-        .select('*, patient_profile:users!patient_id(id, display_name, profile_picture_url, email, fcm_token)')
+        .select('*, patient_profile:users!patient_id(id, display_name, photo_url, email, fcm_token)')
         .eq('therapist_id', therapistId)
         .gte('scheduled_time', new Date().toISOString())
         .in('status', ['confirmed', 'pending'])
@@ -189,7 +189,7 @@ module.exports = {
       if (patientIds.length > 0) {
         const { data: patients } = await supabase
           .from('users')
-          .select('id, display_name, profile_picture_url, email, fcm_token')
+          .select('id, display_name, photo_url, email, fcm_token')
           .in('id', patientIds);
         (patients || []).forEach((p) => { patientMap[p.id] = p; });
       }
@@ -300,7 +300,7 @@ module.exports = {
       if (patientIds.length > 0) {
         const { data: users } = await supabase
           .from('users')
-          .select('id, display_name, profile_picture_url, email')
+          .select('id, display_name, photo_url, email')
           .in('id', patientIds);
         (users || []).forEach((u) => { profileMap[u.id] = u; });
       }
@@ -315,7 +315,7 @@ module.exports = {
             id: pid,
             displayName: profile?.display_name || 'Unknown',
             email: profile?.email || '',
-            profilePictureUrl: profile?.profile_picture_url || null,
+            profilePictureUrl: profile?.photo_url || null,
             sessionCount: 0,
             lastSessionDate: null,
           };
@@ -408,7 +408,7 @@ module.exports = {
     try {
       const { data: user, error: userErr } = await supabase
         .from('users')
-        .select('id, display_name, email, profile_picture_url, fcm_token')
+        .select('id, display_name, email, photo_url, fcm_token')
         .eq('id', therapistId)
         .single();
 
@@ -418,14 +418,14 @@ module.exports = {
         .from('therapist_profiles')
         .select('*')
         .eq('user_id', therapistId)
-        .single();
+        .maybeSingle();
 
       res.json({
         profile: {
           id: user.id,
           displayName: user.display_name,
           email: user.email,
-          profilePictureUrl: user.profile_picture_url,
+          profilePictureUrl: user.photo_url || profile?.profile_image_url || null,
           availabilityJson: profile?.availability_json || {},
           bio: profile?.bio || '',
           specialty: profile?.specialty || '',
@@ -455,7 +455,7 @@ module.exports = {
       // Update user record
       const userUpdate = {};
       if (displayName) userUpdate.display_name = displayName;
-      if (profilePictureUrl) userUpdate.profile_picture_url = profilePictureUrl;
+      if (profilePictureUrl) userUpdate.photo_url = profilePictureUrl;
 
       if (Object.keys(userUpdate).length > 0) {
         await supabase.from('users').update(userUpdate).eq('id', therapistId);
