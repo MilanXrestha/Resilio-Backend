@@ -1,4 +1,5 @@
 const { VideoRepository } = require('../../data/repositories/video-repository');
+const { UserRepository } = require('../../data/repositories/user-repository');
 
 /**
  * Video Use Cases - Business logic layer
@@ -6,6 +7,7 @@ const { VideoRepository } = require('../../data/repositories/video-repository');
 class VideoUseCases {
   constructor() {
     this.videoRepository = new VideoRepository();
+    this.userRepository = new UserRepository();
   }
 
   /**
@@ -170,6 +172,69 @@ class VideoUseCases {
         success: false,
         error: 'Failed to increment play count',
         data: null
+      };
+    }
+  }
+
+  /**
+   * Get comments for a video
+   */
+  async getVideoComments(videoId) {
+    try {
+      const comments = await this.videoRepository.getComments(videoId);
+      return {
+        success: true,
+        data: comments
+      };
+    } catch (error) {
+      console.error('Error in getVideoComments:', error);
+      return {
+        success: false,
+        error: 'Failed to fetch comments',
+        data: []
+      };
+    }
+  }
+
+  /**
+   * Add a comment to a video
+   */
+  async addVideoComment(videoId, userId, content) {
+    try {
+      if (!content || content.trim().length === 0) {
+        return {
+          success: false,
+          error: 'Comment content cannot be empty'
+        };
+      }
+
+      // Resolve firebase_uid to internal database id
+      const user = await this.userRepository.findByFirebaseUid(userId);
+      if (!user) {
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+
+      const comment = await this.videoRepository.addComment(videoId, user.id, content);
+      
+      if (comment) {
+        return {
+          success: true,
+          data: comment
+        };
+      }
+
+      return {
+        success: false,
+        error: 'Failed to add comment'
+      };
+    } catch (error) {
+      console.error('Error in addVideoComment:', error);
+      return {
+        success: false,
+        error: 'Internal server error'
       };
     }
   }

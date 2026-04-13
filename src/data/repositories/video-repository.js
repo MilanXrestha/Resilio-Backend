@@ -263,6 +263,66 @@ class VideoRepository {
   }
 
   /**
+   * Get comments for a video
+   */
+  async getComments(videoId) {
+    try {
+      if (!supabase) return [];
+
+      const { data, error } = await supabase
+        .from('video_comments')
+        .select(`
+          *,
+          users (
+            id,
+            display_name,
+            photo_url
+          )
+        `)
+        .eq('video_id', videoId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('VideoRepository.getComments error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Add a comment to a video
+   */
+  async addComment(videoId, userId, content) {
+    try {
+      if (!supabase) return null;
+
+      const { data, error } = await supabase
+        .from('video_comments')
+        .insert([{
+          video_id: videoId,
+          user_id: userId,
+          content: content
+        }])
+        .select(`
+          *,
+          users (
+            id,
+            display_name,
+            photo_url
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('VideoRepository.addComment error:', error);
+      return null;
+    }
+  }
+
+  /**
    * Map database row to entity object
    */
   _mapToEntity(row) {

@@ -21,18 +21,17 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const quotesProto = quotes.map(quote => ({
-          ...quote,
-          id: quote.id,
-          quoteText: quote.quoteText,
-          author: quote.author,
+          id: quote.id || '',
+          quoteText: quote.quoteText || '',
+          author: quote.author || '',
           authorIconUrl: quote.authorIconUrl || '',
           categoryId: quote.categoryId ? quote.categoryId.toString() : '',
           preferenceIds: Array.isArray(quote.preferenceIds) ? quote.preferenceIds : [],
-          isFeatured: quote.isFeatured,
-          isPremium: quote.isPremium,
-          quoteType: quote.quoteType,
-          createdAt: quote.createdAt.toISOString(),
-          updatedAt: quote.updatedAt.toISOString(),
+          isFeatured: quote.isFeatured || false,
+          isPremium: quote.isPremium || false,
+          quoteType: quote.quoteType || '',
+          createdAt: quote.createdAt?.toISOString() || '',
+          updatedAt: quote.updatedAt?.toISOString() || '',
         }));
 
         res.proto({ quotes: quotesProto }, 'resilio.quote.GetFeaturedQuotesResponse');
@@ -59,18 +58,17 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const quoteProto = {
-          ...quote,
-          id: quote.id,
-          quoteText: quote.quoteText,
-          author: quote.author,
+          id: quote.id || '',
+          quoteText: quote.quoteText || '',
+          author: quote.author || '',
           authorIconUrl: quote.authorIconUrl || '',
           categoryId: quote.categoryId ? quote.categoryId.toString() : '',
-          preferenceIds: quote.preferenceIds,
-          isFeatured: quote.isFeatured,
-          isPremium: quote.isPremium,
-          quoteType: quote.quoteType,
-          createdAt: quote.createdAt.toISOString(),
-          updatedAt: quote.updatedAt.toISOString(),
+          preferenceIds: Array.isArray(quote.preferenceIds) ? quote.preferenceIds : [],
+          isFeatured: quote.isFeatured || false,
+          isPremium: quote.isPremium || false,
+          quoteType: quote.quoteType || '',
+          createdAt: quote.createdAt?.toISOString() || '',
+          updatedAt: quote.updatedAt?.toISOString() || '',
         };
 
         res.proto(quoteProto, 'resilio.quote.Quote');
@@ -106,18 +104,17 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const quotesProto = result.quotes.map(quote => ({
-          ...quote,
-          id: quote.id,
-          quoteText: quote.quoteText,
-          author: quote.author,
+          id: quote.id || '',
+          quoteText: quote.quoteText || '',
+          author: quote.author || '',
           authorIconUrl: quote.authorIconUrl || '',
           categoryId: quote.categoryId ? quote.categoryId.toString() : '',
-          preferenceIds: quote.preferenceIds,
-          isFeatured: quote.isFeatured,
-          isPremium: quote.isPremium,
-          quoteType: quote.quoteType,
-          createdAt: quote.createdAt.toISOString(),
-          updatedAt: quote.updatedAt.toISOString(),
+          preferenceIds: Array.isArray(quote.preferenceIds) ? quote.preferenceIds : [],
+          isFeatured: quote.isFeatured || false,
+          isPremium: quote.isPremium || false,
+          quoteType: quote.quoteType || '',
+          createdAt: quote.createdAt?.toISOString() || '',
+          updatedAt: quote.updatedAt?.toISOString() || '',
         }));
 
         const response = {
@@ -127,6 +124,8 @@ module.exports = {
             limit: filters.limit,
             total: result.total,
             totalPages: Math.ceil(result.total / filters.limit),
+            hasNext: filters.offset + filters.limit < result.total,
+            hasPrevious: filters.offset > 0,
           },
         };
 

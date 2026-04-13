@@ -22,21 +22,20 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const tipsProto = tips.map(tip => ({
-          ...tip,
-          id: tip.id,
-          title: tip.title,
-          tipText: tip.tipText,
+          id: tip.id || '',
+          title: tip.title || '',
+          tipText: tip.tipText || '',
           author: tip.author || '',
           authorIconUrl: tip.authorIconUrl || '',
           categoryId: tip.categoryId ? tip.categoryId.toString() : '',
           preferenceIds: Array.isArray(tip.preferenceIds) ? tip.preferenceIds : [],
-          tipType: tip.tipType,
-          isFeatured: tip.isFeatured,
-          isPremium: tip.isPremium,
-          sortOrder: tip.sortOrder,
-          metadata: tip.metadata,
-          createdAt: tip.createdAt.toISOString(),
-          updatedAt: tip.updatedAt.toISOString(),
+          tipType: tip.tipType || '',
+          isFeatured: tip.isFeatured || false,
+          isPremium: tip.isPremium || false,
+          sortOrder: tip.sortOrder || 0,
+          metadata: tip.metadata || '',
+          createdAt: tip.createdAt?.toISOString() || '',
+          updatedAt: tip.updatedAt?.toISOString() || '',
         }));
 
         res.proto({ tips: tipsProto }, 'resilio.tips.GetFeaturedTipsResponse');
@@ -63,21 +62,20 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const tipProto = {
-          ...tip,
-          id: tip.id,
-          title: tip.title,
-          tipText: tip.tipText,
+          id: tip.id || '',
+          title: tip.title || '',
+          tip_text: tip.tipText || '',
           author: tip.author || '',
-          authorIconUrl: tip.authorIconUrl || '',
-          categoryId: tip.categoryId ? tip.categoryId.toString() : '',
-          preferenceIds: tip.preferenceIds,
-          tipType: tip.tipType,
-          isFeatured: tip.isFeatured,
-          isPremium: tip.isPremium,
-          sortOrder: tip.sortOrder,
-          metadata: tip.metadata,
-          createdAt: tip.createdAt.toISOString(),
-          updatedAt: tip.updatedAt.toISOString(),
+          author_icon_url: tip.authorIconUrl || '',
+          category_id: tip.categoryId ? tip.categoryId.toString() : '',
+          preference_ids: Array.isArray(tip.preferenceIds) ? tip.preferenceIds : [],
+          tip_type: tip.tipType || '',
+          is_featured: tip.isFeatured || false,
+          is_premium: tip.isPremium || false,
+          sort_order: tip.sortOrder || 0,
+          metadata: tip.metadata || '',
+          created_at: tip.createdAt?.toISOString() || '',
+          updated_at: tip.updatedAt?.toISOString() || '',
         };
 
         res.proto(tipProto, 'resilio.tips.Tip');
@@ -114,21 +112,20 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const tipsProto = result.tips.map(tip => ({
-          ...tip,
-          id: tip.id,
-          title: tip.title,
-          tipText: tip.tipText,
+          id: tip.id || '',
+          title: tip.title || '',
+          tip_text: tip.tipText || '',
           author: tip.author || '',
-          authorIconUrl: tip.authorIconUrl || '',
-          categoryId: tip.categoryId ? tip.categoryId.toString() : '',
-          preferenceIds: tip.preferenceIds,
-          tipType: tip.tipType,
-          isFeatured: tip.isFeatured,
-          isPremium: tip.isPremium,
-          sortOrder: tip.sortOrder,
-          metadata: tip.metadata,
-          createdAt: tip.createdAt.toISOString(),
-          updatedAt: tip.updatedAt.toISOString(),
+          author_icon_url: tip.authorIconUrl || '',
+          category_id: tip.categoryId ? tip.categoryId.toString() : '',
+          preference_ids: Array.isArray(tip.preferenceIds) ? tip.preferenceIds : [],
+          tip_type: tip.tipType || '',
+          is_featured: tip.isFeatured || false,
+          is_premium: tip.isPremium || false,
+          sort_order: tip.sortOrder || 0,
+          metadata: tip.metadata || '',
+          created_at: tip.createdAt?.toISOString() || '',
+          updated_at: tip.updatedAt?.toISOString() || '',
         }));
 
         const response = {

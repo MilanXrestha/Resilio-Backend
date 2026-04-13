@@ -32,14 +32,13 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const categoriesProto = categories.map(category => ({
-          ...category,
-          id: category.id,
-          name: category.name,
+          id: category.id || '',
+          name: category.name || '',
           imageUrl: category.imageUrl || '',
           description: category.description || '',
           preferenceIds: Array.isArray(category.preferenceIds) ? category.preferenceIds : [],
-          createdAt: category.createdAt.toISOString(),
-          updatedAt: category.updatedAt.toISOString(),
+          createdAt: category.createdAt?.toISOString() || '',
+          updatedAt: category.updatedAt?.toISOString() || '',
         }));
 
         res.proto({ categories: categoriesProto }, 'resilio.category.ListCategoriesResponse');
@@ -66,14 +65,13 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const categoryProto = {
-          ...category,
-          id: category.id,
-          name: category.name,
+          id: category.id || '',
+          name: category.name || '',
           imageUrl: category.imageUrl || '',
           description: category.description || '',
           preferenceIds: Array.isArray(category.preferenceIds) ? category.preferenceIds : [],
-          createdAt: category.createdAt.toISOString(),
-          updatedAt: category.updatedAt.toISOString(),
+          createdAt: category.createdAt?.toISOString() || '',
+          updatedAt: category.updatedAt?.toISOString() || '',
         };
 
         res.proto(categoryProto, 'resilio.category.Category');

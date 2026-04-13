@@ -39,6 +39,17 @@ message Video {
   // Timestamps
   string created_at = 20;
   string updated_at = 21;
+  int32 comment_count = 22;
+}
+
+message VideoComment {
+  string id = 1;
+  string video_id = 2;
+  string user_id = 3;
+  string content = 4;
+  string created_at = 5;
+  string display_name = 6;
+  string photo_url = 7;
 }
 
 // Request/Response messages
@@ -69,4 +80,12 @@ message IncrementPlayCountRequest {
 
 message PlayCountResponse {
   int32 new_count = 1;
+}
+
+message GetCommentsResponse {
+  repeated VideoComment comments = 1;
+}
+
+message AddCommentResponse {
+  VideoComment comment = 1;
 }

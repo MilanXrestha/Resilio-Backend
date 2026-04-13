@@ -16,17 +16,14 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const preferencesProto = preferences.map(pref => ({
-          ...pref,
-          id: pref.id,
-          preferenceId: pref.preferenceId,
-          preferenceName: pref.preferenceName,
-          preferenceDescription: pref.preferenceDescription,
-          preferenceIcon: pref.preferenceIcon,
-          isSvg: pref.isSvg,
-          sortOrder: pref.sortOrder,
-          isActive: pref.isActive,
-          createdAt: pref.createdAt.toISOString(),
-          updatedAt: pref.updatedAt.toISOString(),
+          id: pref.id || '',
+          preferenceId: pref.preferenceId || '',
+          preferenceName: pref.preferenceName || '',
+          preferenceDescription: pref.preferenceDescription || '',
+          preferenceIcon: pref.preferenceIcon || '',
+          isSvg: pref.isSvg || false,
+          sortOrder: pref.sortOrder || 0,
+          isActive: pref.isActive !== false,
         }));
 
         res.proto({ preferences: preferencesProto }, 'resilio.user.ListPreferencesResponse');
@@ -52,15 +49,14 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const preferencesProto = userPrefs.map(userPref => ({
-          ...userPref.preference,
-          id: userPref.preference.id,
-          preferenceId: userPref.preference.preferenceId,
-          preferenceName: userPref.preference.preferenceName,
-          preferenceDescription: userPref.preference.preferenceDescription,
-          preferenceIcon: userPref.preference.preferenceIcon,
-          isSvg: userPref.preference.isSvg,
-          sortOrder: userPref.preference.sortOrder,
-          isActive: userPref.preference.isActive,
+          id: userPref.preference.id || '',
+          preferenceId: userPref.preference.preferenceId || '',
+          preferenceName: userPref.preference.preferenceName || '',
+          preferenceDescription: userPref.preference.preferenceDescription || '',
+          preferenceIcon: userPref.preference.preferenceIcon || '',
+          isSvg: userPref.preference.isSvg || false,
+          sortOrder: userPref.preference.sortOrder || 0,
+          isActive: userPref.preference.isActive !== false,
         }));
 
         res.proto({ preferences: preferencesProto }, 'resilio.user.ListPreferencesResponse');
@@ -100,15 +96,14 @@ module.exports = {
 
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         const preferencesProto = updatedPrefs.map(userPref => ({
-          ...userPref.preference,
-          id: userPref.preference.id,
-          preferenceId: userPref.preference.preferenceId,
-          preferenceName: userPref.preference.preferenceName,
-          preferenceDescription: userPref.preference.preferenceDescription,
-          preferenceIcon: userPref.preference.preferenceIcon,
-          isSvg: userPref.preference.isSvg,
-          sortOrder: userPref.preference.sortOrder,
-          isActive: userPref.preference.isActive,
+          id: userPref.preference.id || '',
+          preferenceId: userPref.preference.preferenceId || '',
+          preferenceName: userPref.preference.preferenceName || '',
+          preferenceDescription: userPref.preference.preferenceDescription || '',
+          preferenceIcon: userPref.preference.preferenceIcon || '',
+          isSvg: userPref.preference.isSvg || false,
+          sortOrder: userPref.preference.sortOrder || 0,
+          isActive: userPref.preference.isActive !== false,
         }));
 
         res.proto({ preferences: preferencesProto }, 'resilio.user.ListPreferencesResponse');

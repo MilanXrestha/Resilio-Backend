@@ -64,6 +64,7 @@ const protoMiddleware = async (req, res, next) => {
             enums: String,
             defaults: true,
             oneofs: true,
+            keepCase: false, // Convert snake_case to camelCase for JS
           });
         } catch (err) {
           console.error('Protobuf decoding error:', err);

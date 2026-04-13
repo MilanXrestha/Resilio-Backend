@@ -12,7 +12,7 @@ module.exports = {
       const durationSeconds = payload.durationSeconds || payload.duration_seconds || 0;
       const score = payload.score || 0;
       const metadataStr = payload.metadata;
-      
+
       let metadataObj = null;
       if (metadataStr) {
         try { metadataObj = JSON.parse(metadataStr); } catch (e) { }
@@ -34,23 +34,50 @@ module.exports = {
 
       if (error) throw error;
 
+      // Auto-unlock achievements based on sessions played
+      try {
+        await _checkAndUnlockAchievements(userId, gameType, score);
+      } catch (achErr) {
+        console.error('Achievement check failed (non-fatal):', achErr);
+      }
+
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         res.proto({
           id: session.id,
           userId: session.user_id,
-          gameType: session.game_type,
-          startTime: session.start_time,
+          gameType: session.game_type || '',
+          startTime: session.start_time || '',
           endTime: session.end_time || '',
-          durationSeconds: session.duration_seconds,
-          score: session.score,
+          durationSeconds: session.duration_seconds || 0,
+          score: session.score || 0,
           metadata: session.metadata ? JSON.stringify(session.metadata) : '',
-          createdAt: session.created_at
+          createdAt: session.created_at || ''
         }, 'resilio.games.GameSession');
         return;
       }
       res.json({ session });
     } catch (error) {
       console.error('Save game session error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  // GET /api/v1/games/sessions
+  async listGameSessions(req, res) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+      const { data: sessions, error } = await supabase
+        .from('game_sessions')
+        .select('id, game_type, score, duration_seconds, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      res.json({ sessions: sessions || [], total: (sessions || []).length });
+    } catch (error) {
+      console.error('List game sessions error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },
@@ -114,11 +141,11 @@ module.exports = {
         res.proto({
           id: entry.id,
           userId: entry.user_id,
-          moodScore: entry.mood_score,
+          moodScore: entry.mood_score || 0,
           moodLabel: entry.mood_label || '',
           note: entry.note || '',
-          entryDate: entry.entry_date,
-          createdAt: entry.created_at
+          entryDate: entry.entry_date || '',
+          createdAt: entry.created_at || ''
         }, 'resilio.games.MoodEntry');
         return;
       }
@@ -154,11 +181,11 @@ module.exports = {
         const protoEntries = (entries || []).map(e => ({
           id: e.id,
           userId: e.user_id,
-          moodScore: e.mood_score,
+          moodScore: e.mood_score || 0,
           moodLabel: e.mood_label || '',
           note: e.note || '',
-          entryDate: e.entry_date,
-          createdAt: e.created_at
+          entryDate: e.entry_date || '',
+          createdAt: e.created_at || ''
         }));
         res.proto({ entries: protoEntries }, 'resilio.games.ListMoodEntriesResponse');
         return;
@@ -166,6 +193,98 @@ module.exports = {
       res.json({ entries });
     } catch (error) {
       console.error('List mood entries error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  // GET /api/v1/games/quiz-questions  — global quiz question bank
+  async listQuizQuestions(req, res) {
+    try {
+      const { data, error } = await supabase
+        .from('quiz_questions')
+        .select('id, question, options, correct_option_index, explanation, category, difficulty')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+      res.json({ questions: data || [] });
+    } catch (error) {
+      console.error('List quiz questions error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  // GET /api/v1/games/affirmation-puzzles  — global affirmation puzzle bank
+  async listAffirmationPuzzles(req, res) {
+    try {
+      const { data, error } = await supabase
+        .from('affirmation_puzzles')
+        .select('id, text, words, category, difficulty, background_color, icon_name')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+
+      if (error) throw error;
+      res.json({ puzzles: data || [] });
+    } catch (error) {
+      console.error('List affirmation puzzles error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  // GET /api/v1/games/achievements/all  — all defined achievements (with unlock status for current user)
+  async listAllAchievements(req, res) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+      // Fetch all achievements defined in the system
+      const { data: allAchs, error: achErr } = await supabase
+        .from('achievements')
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+      if (achErr) throw achErr;
+
+      // Fetch which ones this user has unlocked
+      const { data: userAchs } = await supabase
+        .from('user_achievements')
+        .select('achievement_id, unlocked_at')
+        .eq('user_id', userId);
+
+      const unlockedMap = {};
+      (userAchs || []).forEach(ua => {
+        unlockedMap[ua.achievement_id] = ua.unlocked_at;
+      });
+
+      if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
+        // Return as a list of UserAchievement protos (unlocked ones have id/unlockedAt set, locked ones have empty id)
+        const protos = (allAchs || []).map(a => ({
+          id: unlockedMap[a.id] ? a.id : '',
+          userId: unlockedMap[a.id] ? userId : '',
+          achievementId: a.id,
+          unlockedAt: unlockedMap[a.id] || '',
+          achievement: {
+            id: a.id,
+            code: a.code || '',
+            name: a.name || '',
+            description: a.description || '',
+            iconUrl: a.icon_url || '',
+            requirementType: a.game_id || 'global',
+            requirementValue: a.requirement_value || 0,
+          }
+        }));
+        res.proto({ achievements: protos }, 'resilio.games.ListUserAchievementsResponse');
+        return;
+      }
+      res.json({
+        achievements: (allAchs || []).map(a => ({
+          ...a,
+          unlocked: !!unlockedMap[a.id],
+          unlockedAt: unlockedMap[a.id] || null,
+        }))
+      });
+    } catch (error) {
+      console.error('List all achievements error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },
@@ -194,15 +313,15 @@ module.exports = {
           id: ua.id,
           userId: ua.user_id,
           achievementId: ua.achievement_id,
-          unlockedAt: ua.unlocked_at,
+          unlockedAt: ua.unlocked_at || '',
           achievement: ua.achievements ? {
             id: ua.achievements.id,
-            code: ua.achievements.code,
-            name: ua.achievements.name,
-            description: ua.achievements.description,
+            code: ua.achievements.code || '',
+            name: ua.achievements.name || '',
+            description: ua.achievements.description || '',
             iconUrl: ua.achievements.icon_url || '',
-            requirementType: ua.achievements.requirement_type,
-            requirementValue: ua.achievements.requirement_value,
+            requirementType: ua.achievements.requirement_type || '',
+            requirementValue: ua.achievements.requirement_value || 0,
           } : null
         }));
         res.proto({ achievements: protos }, 'resilio.games.ListUserAchievementsResponse');
@@ -245,10 +364,10 @@ module.exports = {
         res.proto({
           id: aff.id,
           userId: aff.user_id,
-          text: aff.text,
+          text: aff.text || '',
           backgroundColor: aff.background_color || '',
           iconName: aff.icon_name || '',
-          createdAt: aff.created_at
+          createdAt: aff.created_at || ''
         }, 'resilio.games.Affirmation');
         return;
       }
@@ -277,10 +396,10 @@ module.exports = {
         const protos = (affs || []).map(aff => ({
            id: aff.id,
            userId: aff.user_id,
-           text: aff.text,
+           text: aff.text || '',
            backgroundColor: aff.background_color || '',
            iconName: aff.icon_name || '',
-           createdAt: aff.created_at
+           createdAt: aff.created_at || ''
         }));
         res.proto({ affirmations: protos }, 'resilio.games.ListAffirmationsResponse');
         return;
@@ -297,18 +416,18 @@ module.exports = {
     try {
       const userId = req.user?.id;
       if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-      
+
       const affId = req.params.id;
       if (!affId) return res.status(400).json({ error: 'id required' });
-      
+
       const { error } = await supabase
         .from('affirmations')
         .delete()
         .eq('id', affId)
         .eq('user_id', userId);
-        
+
       if (error) throw error;
-      
+
       if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
         res.proto({}, 'resilio.common.Empty');
         return;
@@ -320,3 +439,65 @@ module.exports = {
     }
   }
 };
+
+// ── Internal helper: auto-unlock achievements after a game session ──────────
+async function _checkAndUnlockAchievements(userId, gameType, score) {
+  // Count total sessions for this user (and game-specific)
+  const { count: totalSessions } = await supabase
+    .from('game_sessions')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  const { count: gameTypeSessions } = await supabase
+    .from('game_sessions')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('game_type', gameType);
+
+  // Fetch all achievements relevant to this game and global ones
+  const { data: achievements } = await supabase
+    .from('achievements')
+    .select('*')
+    .in('game_id', [gameType, 'global']);
+
+  if (!achievements || achievements.length === 0) return;
+
+  // Fetch already-unlocked achievement IDs for this user
+  const { data: existing } = await supabase
+    .from('user_achievements')
+    .select('achievement_id')
+    .eq('user_id', userId);
+
+  const unlockedIds = new Set((existing || []).map(e => e.achievement_id));
+
+  const toUnlock = [];
+  for (const ach of achievements) {
+    if (unlockedIds.has(ach.id)) continue;
+
+    let shouldUnlock = false;
+    switch (ach.requirement_type) {
+      case 'sessions_total':
+        shouldUnlock = totalSessions >= ach.requirement_value;
+        break;
+      case 'sessions_game':
+        shouldUnlock = gameTypeSessions >= ach.requirement_value;
+        break;
+      case 'score':
+        shouldUnlock = score >= ach.requirement_value;
+        break;
+      case 'first_play':
+        shouldUnlock = gameTypeSessions >= 1;
+        break;
+      default:
+        break;
+    }
+
+    if (shouldUnlock) {
+      toUnlock.push({ user_id: userId, achievement_id: ach.id, unlocked_at: new Date().toISOString() });
+    }
+  }
+
+  if (toUnlock.length > 0) {
+    await supabase.from('user_achievements').insert(toUnlock);
+  }
+}

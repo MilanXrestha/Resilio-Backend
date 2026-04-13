@@ -154,8 +154,14 @@ module.exports = {
         patient_id = req.user.id;
       } else if (req.user?.role === 'therapist') {
         therapist_id = req.user.id;
+      } else if (req.user?.role === 'admin') {
+        // Admin sees everything as requested — no override
+      } else {
+        // Role unknown (e.g. ST user whose role lookup failed) — default to
+        // showing only the requesting user's own appointments as a patient.
+        // This prevents data leakage when role is undefined.
+        patient_id = req.user.id;
       }
-      // Admin sees everything as requested.
 
       const { appointments, total } = await appointmentRepo.listAppointments(patient_id, therapist_id, status);
       

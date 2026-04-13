@@ -35,8 +35,21 @@ class VideoController {
       playCount: video.playCount || 0,
       likeCount: video.likeCount || 0,
       shareCount: video.shareCount || 0,
+      commentCount: video.commentCount || 0,
       createdAt: video.createdAt || '',
       updatedAt: video.updatedAt || '',
+    };
+  }
+
+  _toProtoComment(comment) {
+    return {
+      id: comment.id || '',
+      videoId: comment.video_id || '',
+      userId: comment.user_id || '',
+      content: comment.content || '',
+      createdAt: comment.created_at || '',
+      displayName: comment.users?.display_name || 'User',
+      photoUrl: comment.users?.photo_url || '',
     };
   }
 
@@ -48,8 +61,6 @@ class VideoController {
           videos: videos.map(v => this._toProtoVideo(v)),
           totalCount: totalCount || 0,
         };
-        console.log('📹 Proto payload keys:', Object.keys(protoPayload));
-        console.log('📹 First video keys:', videos.length > 0 ? Object.keys(protoPayload.videos[0]) : 'no videos');
         return res.proto(protoPayload, 'video.GetVideosResponse');
       } catch (e) {
         console.error('📹 Proto encoding error:', e);
@@ -277,6 +288,71 @@ class VideoController {
         success: false,
         error: 'Internal server error',
       });
+    }
+  }
+
+  async getVideoComments(req, res) {
+    try {
+      const { id: videoId } = req.params;
+      const result = await this.videoUseCases.getVideoComments(videoId);
+
+      if (!result.success) {
+        return res.status(500).json(result);
+      }
+
+      if (this._wantsProtobuf(req)) {
+        try {
+          const protoPayload = {
+            comments: result.data.map(c => this._toProtoComment(c)),
+          };
+          return res.proto(protoPayload, 'video.GetCommentsResponse');
+        } catch (e) {
+          console.error('📹 Proto encoding error:', e);
+          return res.status(500).json({ error: 'Protobuf encoding failed: ' + e.message });
+        }
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error in getVideoComments controller:', error);
+      res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+  }
+
+  async addVideoComment(req, res) {
+    try {
+      const { id: videoId } = req.params;
+      const { user_id, content } = req.body;
+
+      if (!user_id || !content) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: user_id, content'
+        });
+      }
+
+      const result = await this.videoUseCases.addVideoComment(videoId, user_id, content);
+
+      if (!result.success) {
+        return res.status(500).json(result);
+      }
+
+      if (this._wantsProtobuf(req)) {
+        try {
+          const protoPayload = {
+            comment: this._toProtoComment(result.data),
+          };
+          return res.proto(protoPayload, 'video.AddCommentResponse');
+        } catch (e) {
+          console.error('📹 Proto encoding error:', e);
+          return res.status(500).json({ error: 'Protobuf encoding failed: ' + e.message });
+        }
+      }
+
+      res.status(201).json(result);
+    } catch (error) {
+      console.error('Error in addVideoComment controller:', error);
+      res.status(500).json({ success: false, error: 'Internal server error' });
     }
   }
 }

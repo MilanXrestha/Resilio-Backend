@@ -27,4 +27,8 @@ router.get('/:id', (req, res) => videoController.getVideoById(req, res));
 // Increment play count
 router.post('/:id/play', (req, res) => videoController.incrementPlayCount(req, res));
 
+// Comments
+router.get('/:id/comments', (req, res) => videoController.getVideoComments(req, res));
+router.post('/:id/comments', (req, res) => videoController.addVideoComment(req, res));
+
 module.exports = router;

@@ -182,7 +182,7 @@ module.exports = {
           endDate: subscription.end_date || '',
           paymentMethod: subscription.payment_method,
           lastTransactionId: subscription.last_transaction_id || '',
-          isAutoRenew: subscription.is_auto_renew,
+          isAutoRenew: subscription.is_auto_renew || false,
           createdAt: subscription.created_at,
           updatedAt: subscription.updated_at,
         };

@@ -121,6 +121,24 @@ async function authMiddleware(req, res, next) {
           superTokensUserId: userId,
           provider: 'supertokens',
         };
+
+        // Enrich with DB UUID and role from Supabase (non-fatal if lookup fails)
+        try {
+          const { supabase } = require('../config/supabase-client');
+          if (supabase) {
+            const { data: dbUser } = await supabase
+              .from('users')
+              .select('id, user_role')
+              .eq('supertokens_uid', userId)
+              .single();
+            if (dbUser) {
+              req.user.id = dbUser.id;           // use DB UUID, not ST UID
+              req.user.role = dbUser.user_role;
+            }
+          }
+        } catch (roleErr) {
+          console.warn('⚠ Could not fetch ST user role from DB:', roleErr.message);
+        }
       } catch (stErr) {
         console.error('✗ SuperTokens token verification failed:', stErr.message);
         return res.status(401).json({ error: 'Unauthorized - Invalid or expired token' });
@@ -148,12 +166,29 @@ async function authMiddleware(req, res, next) {
  * Middleware to extract user info from SuperTokens session
  * for routes using SuperTokens verifySession()
  */
-function addUserInfo(req, res, next) {
+async function addUserInfo(req, res, next) {
   if (req.session) {
+    const stUserId = req.session.getUserId();
     req.user = {
-      id: req.session.getUserId(),
+      id: stUserId,
       provider: 'supertokens',
     };
+
+    // Enrich with DB UUID and role (non-fatal)
+    try {
+      const { supabase } = require('../config/supabase-client');
+      if (supabase) {
+        const { data: dbUser } = await supabase
+          .from('users')
+          .select('id, user_role')
+          .eq('supertokens_uid', stUserId)
+          .single();
+        if (dbUser) {
+          req.user.id = dbUser.id;
+          req.user.role = dbUser.user_role;
+        }
+      }
+    } catch (_) {}
   }
   next();
 }

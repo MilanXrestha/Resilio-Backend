@@ -16,26 +16,26 @@ const getFeaturedImages = async (req, res) => {
     // Handle protobuf response
     if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
       const imagesProto = images.map(image => ({
-        id: image.id,
-        title: image.title,
+        id: image.id || '',
+        title: image.title || '',
         description: image.description || '',
-        imageUrl: image.imageUrl,
+        imageUrl: image.imageUrl || '',
         thumbnailUrl: image.thumbnailUrl || '',
         author: image.author || '',
         authorIconUrl: image.authorIconUrl || '',
         categoryId: image.categoryId ? image.categoryId.toString() : '',
         preferenceIds: Array.isArray(image.preferenceIds) ? image.preferenceIds : [],
-        imageType: image.imageType,
-        isFeatured: image.isFeatured,
-        isPremium: image.isPremium,
+        imageType: image.imageType || '',
+        isFeatured: image.isFeatured || false,
+        isPremium: image.isPremium || false,
         resolutionWidth: image.resolutionWidth || 0,
         resolutionHeight: image.resolutionHeight || 0,
         fileSizeBytes: Number(image.fileSizeBytes) || 0,
         downloadCount: image.downloadCount || 0,
         sortOrder: image.sortOrder || 0,
-        metadata: image.metadata,
-        createdAt: typeof image.createdAt === 'string' ? image.createdAt : (image.createdAt?.toISOString() || new Date().toISOString()),
-        updatedAt: typeof image.updatedAt === 'string' ? image.updatedAt : (image.updatedAt?.toISOString() || new Date().toISOString()),
+        metadata: image.metadata || '',
+        createdAt: typeof image.createdAt === 'string' ? image.createdAt : (image.createdAt?.toISOString() || ''),
+        updatedAt: typeof image.updatedAt === 'string' ? image.updatedAt : (image.updatedAt?.toISOString() || ''),
       }));
 
       res.proto({ images: imagesProto }, 'resilio.images.GetFeaturedImagesResponse');
@@ -68,26 +68,26 @@ const getImageById = async (req, res) => {
     // Handle protobuf response
     if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
       const imageProto = {
-        id: image.id,
-        title: image.title,
+        id: image.id || '',
+        title: image.title || '',
         description: image.description || '',
-        imageUrl: image.imageUrl,
+        imageUrl: image.imageUrl || '',
         thumbnailUrl: image.thumbnailUrl || '',
         author: image.author || '',
         authorIconUrl: image.authorIconUrl || '',
         categoryId: image.categoryId ? image.categoryId.toString() : '',
         preferenceIds: Array.isArray(image.preferenceIds) ? image.preferenceIds : [],
-        imageType: image.imageType,
-        isFeatured: image.isFeatured,
-        isPremium: image.isPremium,
+        imageType: image.imageType || '',
+        isFeatured: image.isFeatured || false,
+        isPremium: image.isPremium || false,
         resolutionWidth: image.resolutionWidth || 0,
         resolutionHeight: image.resolutionHeight || 0,
         fileSizeBytes: Number(image.fileSizeBytes) || 0,
         downloadCount: image.downloadCount || 0,
         sortOrder: image.sortOrder || 0,
-        metadata: image.metadata,
-        createdAt: typeof image.createdAt === 'string' ? image.createdAt : (image.createdAt?.toISOString() || new Date().toISOString()),
-        updatedAt: typeof image.updatedAt === 'string' ? image.updatedAt : (image.updatedAt?.toISOString() || new Date().toISOString()),
+        metadata: image.metadata || '',
+        createdAt: typeof image.createdAt === 'string' ? image.createdAt : (image.createdAt?.toISOString() || ''),
+        updatedAt: typeof image.updatedAt === 'string' ? image.updatedAt : (image.updatedAt?.toISOString() || ''),
       };
 
       res.proto(imageProto, 'resilio.images.Image');
@@ -199,26 +199,26 @@ const getImagesByType = async (req, res) => {
     // Handle protobuf response
     if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
       const imagesProto = result.images.map(image => ({
-        id: image.id,
-        title: image.title,
+        id: image.id || '',
+        title: image.title || '',
         description: image.description || '',
-        imageUrl: image.imageUrl,
+        imageUrl: image.imageUrl || '',
         thumbnailUrl: image.thumbnailUrl || '',
         author: image.author || '',
         authorIconUrl: image.authorIconUrl || '',
         categoryId: image.categoryId ? image.categoryId.toString() : '',
         preferenceIds: Array.isArray(image.preferenceIds) ? image.preferenceIds : [],
-        imageType: image.imageType,
-        isFeatured: image.isFeatured,
-        isPremium: image.isPremium,
+        imageType: image.imageType || '',
+        isFeatured: image.isFeatured || false,
+        isPremium: image.isPremium || false,
         resolutionWidth: image.resolutionWidth || 0,
         resolutionHeight: image.resolutionHeight || 0,
         fileSizeBytes: Number(image.fileSizeBytes) || 0,
         downloadCount: image.downloadCount || 0,
         sortOrder: image.sortOrder || 0,
-        metadata: image.metadata,
-        createdAt: typeof image.createdAt === 'string' ? image.createdAt : (image.createdAt?.toISOString() || new Date().toISOString()),
-        updatedAt: typeof image.updatedAt === 'string' ? image.updatedAt : (image.updatedAt?.toISOString() || new Date().toISOString()),
+        metadata: image.metadata || '',
+        createdAt: typeof image.createdAt === 'string' ? image.createdAt : (image.createdAt?.toISOString() || ''),
+        updatedAt: typeof image.updatedAt === 'string' ? image.updatedAt : (image.updatedAt?.toISOString() || ''),
       }));
 
       res.proto(
