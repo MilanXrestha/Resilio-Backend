@@ -119,7 +119,11 @@ class UserRepository {
           last_login_at: new Date().toISOString(),
         };
 
-        if (displayName) {
+        // Only set the display name if the user doesn't already have one.
+        // Never overwrite an existing name (e.g. a real Google name) with the
+        // email-prefix placeholder on every SuperTokens login — that made the
+        // name flip between login methods.
+        if (displayName && !existing.displayName) {
           updatePayload.display_name = displayName;
         }
 

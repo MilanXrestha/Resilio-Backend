@@ -17,9 +17,14 @@ class UserUseCases {
     let user = await this.userRepository.findByFirebaseUid(userData.firebaseUid);
 
     if (user) {
-      // User already linked to this Firebase UID — just update
+      // User already linked to this Firebase UID. Refresh login metadata but
+      // DO NOT overwrite an existing display name / photo — keep whatever the
+      // account already has (respects profile edits and stops the name from
+      // flipping between login methods). Only fill them if currently empty.
       return await this.userRepository.update(user.id, {
-        ...userData,
+        displayName: user.displayName || userData.displayName,
+        photoUrl: user.photoUrl || userData.photoUrl,
+        fcmToken: userData.fcmToken || user.fcmToken,
         lastLoginAt: new Date(),
       });
     }
