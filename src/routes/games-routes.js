@@ -25,4 +25,8 @@ router.post('/affirmations', gamesController.saveAffirmation);
 router.get('/affirmations', gamesController.listAffirmations);
 router.delete('/affirmations/:id', gamesController.deleteAffirmation);
 
+// Game content
+router.get('/quiz-questions', gamesController.listQuizQuestions);
+router.get('/affirmation-puzzles', gamesController.listAffirmationPuzzles);
+
 module.exports = router;

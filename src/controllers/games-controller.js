@@ -318,5 +318,56 @@ module.exports = {
       console.error('Delete affirmation error:', err);
       res.status(500).json({ error: 'Internal server error' });
     }
+  },
+
+  // GET /api/v1/games/quiz-questions
+  async listQuizQuestions(req, res) {
+    try {
+      if (!supabase) return res.json({ questions: [] });
+      const { data, error } = await supabase
+        .from('quiz_questions')
+        .select('*')
+        .eq('is_active', true);
+      if (error) throw error;
+      const questions = (data || []).map(q => ({
+        id: q.id,
+        question: q.question,
+        options: q.options || [],
+        correct_option_index: q.correct_option_index ?? 0,
+        explanation: q.explanation || '',
+        category: q.category || 'general',
+        difficulty: q.difficulty ?? 1,
+      }));
+      res.json({ questions });
+    } catch (err) {
+      console.error('List quiz questions error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  // GET /api/v1/games/affirmation-puzzles
+  async listAffirmationPuzzles(req, res) {
+    try {
+      if (!supabase) return res.json({ puzzles: [] });
+      const { data, error } = await supabase
+        .from('affirmation_puzzles')
+        .select('*')
+        .eq('is_active', true);
+      if (error) throw error;
+      const puzzles = (data || []).map(p => ({
+        id: p.id,
+        text: p.text,
+        words: p.words || [],
+        background_color: p.background_color || '0xFF6A5ACD',
+        icon_name: p.icon_name || 'favorite',
+        category: p.category || 'general',
+        difficulty: p.difficulty ?? 1,
+        created_at: p.created_at,
+      }));
+      res.json({ puzzles });
+    } catch (err) {
+      console.error('List affirmation puzzles error:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
   }
 };
