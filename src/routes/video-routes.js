@@ -1,8 +1,11 @@
 const express = require('express');
 const { VideoController } = require('../controllers/video-controller');
+const { VideoCommentController } = require('../controllers/video-comment-controller');
+const { authMiddleware } = require('../middlewares/auth-middleware');
 
 const router = express.Router();
 const videoController = new VideoController();
+const commentController = new VideoCommentController();
 
 /**
  * Video routes
@@ -26,5 +29,9 @@ router.get('/:id', (req, res) => videoController.getVideoById(req, res));
 
 // Increment play count
 router.post('/:id/play', (req, res) => videoController.incrementPlayCount(req, res));
+
+// Comments — read is public, posting requires a valid session.
+router.get('/:id/comments', (req, res) => commentController.getComments(req, res));
+router.post('/:id/comments', authMiddleware, (req, res) => commentController.addComment(req, res));
 
 module.exports = router;

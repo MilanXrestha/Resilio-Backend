@@ -10,12 +10,14 @@ class FavoriteController {
 
   async addFavorite(req, res) {
     try {
-      const { user_id, content_id, content_type } = req.body;
+      const { content_id, content_type } = req.body;
+      // User is taken from the verified token, never the request body.
+      const user_id = req.user?.id;
 
       if (!user_id || !content_id || !content_type) {
         return res.status(400).json({
           success: false,
-          error: 'Missing required fields: user_id, content_id, content_type'
+          error: 'Missing required fields: content_id, content_type'
         });
       }
 
@@ -38,12 +40,13 @@ class FavoriteController {
 
   async removeFavorite(req, res) {
     try {
-      const { user_id, content_id, content_type } = req.body;
+      const { content_id, content_type } = req.body;
+      const user_id = req.user?.id;
 
       if (!user_id || !content_id || !content_type) {
         return res.status(400).json({
           success: false,
-          error: 'Missing required fields: user_id, content_id, content_type'
+          error: 'Missing required fields: content_id, content_type'
         });
       }
 
@@ -66,12 +69,14 @@ class FavoriteController {
 
   async getFavorites(req, res) {
     try {
-      const { userId } = req.params;
+      // Always the authenticated user — the :userId route param is ignored so
+      // a client can't read another user's favorites.
+      const userId = req.user?.id;
 
       if (!userId) {
-        return res.status(400).json({
+        return res.status(401).json({
           success: false,
-          error: 'User ID is required'
+          error: 'Unauthorized'
         });
       }
 
@@ -90,12 +95,13 @@ class FavoriteController {
 
   async checkFavoriteStatus(req, res) {
     try {
-      const { user_id, content_id, content_type } = req.query;
+      const { content_id, content_type } = req.query;
+      const user_id = req.user?.id;
 
       if (!user_id || !content_id || !content_type) {
         return res.status(400).json({
           success: false,
-          error: 'Missing required query parameters'
+          error: 'Missing required query parameters: content_id, content_type'
         });
       }
 

@@ -121,6 +121,26 @@ async function authMiddleware(req, res, next) {
           superTokensUserId: userId,
           provider: 'supertokens',
         };
+
+        // Resolve the Supabase users.id (UUID) so downstream writes to
+        // user_id UUID columns (favorites, comments, …) succeed. The ST user
+        // id is not a UUID; the users row links it via supertokens_uid.
+        try {
+          const { supabase } = require('../config/supabase-client');
+          if (supabase) {
+            const { data: dbUser } = await supabase
+              .from('users')
+              .select('id, user_role')
+              .eq('supertokens_uid', userId)
+              .single();
+            if (dbUser) {
+              req.user.id = dbUser.id;
+              req.user.role = dbUser.user_role;
+            }
+          }
+        } catch (roleErr) {
+          console.warn('⚠ Could not resolve ST user in DB:', roleErr.message);
+        }
       } catch (stErr) {
         console.error('✗ SuperTokens token verification failed:', stErr.message);
         return res.status(401).json({ error: 'Unauthorized - Invalid or expired token' });
