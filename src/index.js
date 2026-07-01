@@ -86,6 +86,7 @@ app.use('/api/v1/passwordless', passwordlessRoutes);
 app.use('/api/v1/favorites', favoriteRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
 app.use('/api/v1/games', gamesRoutes);
+app.use('/api/v1/mood', require('./routes/mood-routes'));
 app.use('/api/v1/therapists', require('./routes/therapist-routes'));
 app.use('/api/v1/appointments', require('./routes/appointment-routes'));
 app.use('/api/v1/notifications', notificationRoutes);

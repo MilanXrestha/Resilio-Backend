@@ -10,6 +10,7 @@ router.get('/dashboard', ctrl.getDashboardStats);
 router.get('/appointments', ctrl.getAppointments);
 router.patch('/appointments/:id/status', ctrl.updateAppointmentStatus);
 router.get('/patients', ctrl.getPatients);
+router.get('/patients/:patientId/moods', ctrl.getPatientMoods);
 router.get('/earnings', ctrl.getEarnings);
 router.get('/profile', ctrl.getProfile);
 router.put('/profile', ctrl.updateProfile);

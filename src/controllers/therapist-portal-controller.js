@@ -711,4 +711,39 @@ module.exports = {
       res.status(500).json({ error: e.message });
     }
   },
+
+  // GET /api/v1/therapist-portal/patients/:patientId/moods
+  // Returns a patient's mood entries ONLY if that patient has shared with the
+  // requesting therapist (a mood_shares row exists).
+  async getPatientMoods(req, res) {
+    if (!requireTherapist(req, res)) return;
+    try {
+      const therapistId = req.user?.id;
+      const { patientId } = req.params;
+
+      const { data: share } = await supabase
+        .from('mood_shares')
+        .select('id')
+        .eq('patient_id', patientId)
+        .eq('therapist_id', therapistId)
+        .maybeSingle();
+
+      if (!share) {
+        return res.status(403).json({ error: 'This patient has not shared their mood logs with you.' });
+      }
+
+      const { data, error } = await supabase
+        .from('mood_entries')
+        .select('*')
+        .eq('user_id', patientId)
+        .order('entry_date', { ascending: false })
+        .limit(120);
+      if (error) throw error;
+
+      res.json({ moods: data || [] });
+    } catch (e) {
+      console.error('getPatientMoods error:', e);
+      res.status(500).json({ error: e.message });
+    }
+  },
 };
