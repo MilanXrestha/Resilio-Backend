@@ -215,6 +215,42 @@ module.exports = {
     }
   },
 
+  // GET /api/v1/games/achievements/all — every achievement definition, wrapped
+  // as UserAchievement entries (so the client can render locked + unlocked).
+  async listAllAchievements(req, res) {
+    try {
+      const { data: achs, error } = await supabase
+        .from('achievements')
+        .select('*');
+      if (error) throw error;
+
+      const protos = (achs || []).map(a => ({
+        id: '',
+        userId: '',
+        achievementId: a.id,
+        unlockedAt: '',
+        achievement: {
+          id: a.id,
+          code: a.code,
+          name: a.name,
+          description: a.description,
+          iconUrl: a.icon_url || '',
+          requirementType: a.requirement_type,
+          requirementValue: a.requirement_value,
+        },
+      }));
+
+      if (req.accepts('application/x-protobuf') === 'application/x-protobuf') {
+        res.proto({ achievements: protos }, 'resilio.games.ListUserAchievementsResponse');
+        return;
+      }
+      res.json({ achievements: protos });
+    } catch (error) {
+      console.error('List all achievements error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
   // POST /api/v1/games/affirmations
   async saveAffirmation(req, res) {
     try {

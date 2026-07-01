@@ -18,6 +18,7 @@ router.post('/mood', gamesController.saveMoodEntry);
 router.get('/mood', gamesController.listMoodEntries);
 
 // Achievements
+router.get('/achievements/all', gamesController.listAllAchievements);
 router.get('/achievements', gamesController.listUserAchievements);
 
 // Affirmations
