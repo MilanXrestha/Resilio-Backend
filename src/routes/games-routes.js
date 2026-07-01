@@ -1,13 +1,14 @@
 const express = require('express');
-const { verifySession } = require('supertokens-node/recipe/session/framework/express');
 const gamesController = require('../controllers/games-controller');
-const { addUserInfo } = require('../middlewares/auth-middleware');
+const { authMiddleware } = require('../middlewares/auth-middleware');
 
 const router = express.Router();
 
-// Apply auth middleware to all routes
-router.use(verifySession());
-router.use(addUserInfo);
+// Auth for all game routes. authMiddleware handles BOTH Firebase and
+// SuperTokens tokens and resolves req.user.id to the Supabase users.id (UUID),
+// which mood_entries.user_id references. (verifySession() only accepted
+// SuperTokens tokens → Firebase/Google users got 401.)
+router.use(authMiddleware);
 
 // Games routes
 router.post('/session', gamesController.saveGameSession);

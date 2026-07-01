@@ -36,7 +36,7 @@ function buildOtpEmailHtml(otp, email) {
           <!-- Header gradient -->
           <tr>
             <td style="background:linear-gradient(135deg,#6c63ff 0%,#48bfe3 100%);padding:36px 40px;text-align:center;">
-              <img src="https://res.cloudinary.com/dczb26ev1/image/upload/v1772632775/plant_g1uybh.png"
+              <img src="https://res.cloudinary.com/yh1rva9i/image/upload/v1782945651/wellness_logo_ln4jzz.png"
                    alt="Resilio" width="120" style="max-width:120px;" onerror="this.style.display='none'"/>
               <h1 style="margin:16px 0 4px;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px;">
                 Your login code
