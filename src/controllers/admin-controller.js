@@ -33,11 +33,21 @@ module.exports = {
         .in('status', ['confirmed', 'completed'])
         .gte('created_at', weekAgo.toISOString());
 
+      // 5. Content Counts
+      const { count: totalTips } = await supabase.from('tips').select('*', { count: 'exact', head: true });
+      const { count: totalQuotes } = await supabase.from('quotes').select('*', { count: 'exact', head: true });
+      const { count: totalAudio } = await supabase.from('audio_tracks').select('*', { count: 'exact', head: true });
+      const { count: totalVideos } = await supabase.from('video_tracks').select('*', { count: 'exact', head: true });
+
       res.json({
         totalUsers: totalUsers || 0,
         totalTherapists: totalTherapists || 0,
         pendingVerifications: pendingVerification || 0,
         activeSessions: activeSessions || 0,
+        totalTips: totalTips || 0,
+        totalQuotes: totalQuotes || 0,
+        totalAudio: totalAudio || 0,
+        totalVideos: totalVideos || 0,
       });
     } catch (err) {
       console.error('getDashboardStats error:', err);
