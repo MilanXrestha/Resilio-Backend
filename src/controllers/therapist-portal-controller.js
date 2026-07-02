@@ -81,12 +81,12 @@ module.exports = {
         .eq('therapist_id', therapistId)
         .eq('status', 'pending');
 
-      // Total unique patients
+      // Total unique patients (anyone who has had any appointment)
       const { data: patientRows } = await supabase
         .from('appointments')
         .select('patient_id')
         .eq('therapist_id', therapistId)
-        .eq('status', 'completed');
+        .in('status', ['pending', 'confirmed', 'completed']);
       const uniquePatients = new Set((patientRows || []).map((r) => r.patient_id)).size;
 
       // Weekly earnings (sum of price for confirmed/completed this week)
