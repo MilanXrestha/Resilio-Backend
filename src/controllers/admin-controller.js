@@ -394,15 +394,26 @@ module.exports = {
         }
       }
 
-      // 3. Persist to broadcasts log table (non-fatal)
+      // 3. Persist an in-app notification PER targeted user so it shows in
+      //    their notification list (independent of FCM token presence).
       try {
-        await supabase.from('notifications').insert({
+        let idQuery = supabase.from('users').select('id');
+        if (targetRole === 'user') idQuery = idQuery.eq('user_role', 'user');
+        else if (targetRole === 'therapist') idQuery = idQuery.eq('user_role', 'therapist');
+        const { data: targetUsers } = await idQuery;
+        const rows = (targetUsers || []).map((u) => ({
+          user_id: u.id,
           title,
           body,
-          type: 'broadcast',
-          target: targetRole,
+          type: 'general', // must match the notifications.type CHECK constraint
           action_type: actionType,
-        });
+        }));
+        if (rows.length) {
+          // Insert in chunks to stay under row limits.
+          for (let i = 0; i < rows.length; i += 500) {
+            await supabase.from('notifications').insert(rows.slice(i, i + 500));
+          }
+        }
       } catch (_) { /* non-fatal */ }
 
       res.json({ sent: sentCount, tokens: tokens.length });
