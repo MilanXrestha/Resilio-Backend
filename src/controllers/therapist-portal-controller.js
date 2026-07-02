@@ -43,7 +43,7 @@ function mapAppointment(row) {
     patient: row.patient_profile
       ? {
           id: row.patient_profile.id,
-          displayName: row.patient_profile.display_name,
+          displayName: row.patient_profile.display_name || row.patient_profile.username || (row.patient_profile.email ? row.patient_profile.email.split('@')[0] : 'Unknown'),
           email: row.patient_profile.email,
           profilePictureUrl: row.patient_profile.profile_picture_url,
           fcmToken: row.patient_profile.fcm_token,
@@ -131,7 +131,7 @@ module.exports = {
       // Next appointment today
       const { data: nextRows } = await supabase
         .from('appointments')
-        .select('*, patient_profile:users!patient_id(id, display_name, profile_picture_url, email, fcm_token)')
+        .select('*, patient_profile:users!patient_id(id, display_name, username, profile_picture_url, email, fcm_token)')
         .eq('therapist_id', therapistId)
         .gte('scheduled_time', new Date().toISOString())
         .in('status', ['confirmed', 'pending'])
@@ -189,7 +189,7 @@ module.exports = {
       if (patientIds.length > 0) {
         const { data: patients } = await supabase
           .from('users')
-          .select('id, display_name, profile_picture_url, email, fcm_token')
+          .select('id, display_name, username, profile_picture_url, email, fcm_token')
           .in('id', patientIds);
         (patients || []).forEach((p) => { patientMap[p.id] = p; });
       }
@@ -223,7 +223,7 @@ module.exports = {
       // Verify ownership
       const { data: existing } = await supabase
         .from('appointments')
-        .select('*, patient_profile:users!patient_id(id, display_name, fcm_token)')
+        .select('*, patient_profile:users!patient_id(id, display_name, username, fcm_token)')
         .eq('id', id)
         .eq('therapist_id', therapistId)
         .single();
@@ -300,7 +300,7 @@ module.exports = {
       if (patientIds.length > 0) {
         const { data: users } = await supabase
           .from('users')
-          .select('id, display_name, profile_picture_url, email')
+          .select('id, display_name, username, profile_picture_url, email')
           .in('id', patientIds);
         (users || []).forEach((u) => { profileMap[u.id] = u; });
       }
@@ -313,7 +313,7 @@ module.exports = {
         if (!patientMap[pid]) {
           patientMap[pid] = {
             id: pid,
-            displayName: profile?.display_name || 'Unknown',
+            displayName: profile?.display_name || profile?.username || (profile?.email ? profile.email.split('@')[0] : 'Unknown'),
             email: profile?.email || '',
             profilePictureUrl: profile?.profile_picture_url || null,
             sessionCount: 0,
@@ -342,7 +342,7 @@ module.exports = {
     try {
       const { data, error } = await supabase
         .from('appointments')
-        .select('scheduled_time, price, status, patient_profile:users!patient_id(id, display_name)')
+        .select('scheduled_time, price, status, patient_profile:users!patient_id(id, display_name, username, email)')
         .eq('therapist_id', therapistId)
         .in('status', ['confirmed', 'completed'])
         .order('scheduled_time', { ascending: false });
@@ -408,7 +408,7 @@ module.exports = {
     try {
       const { data: user, error: userErr } = await supabase
         .from('users')
-        .select('id, display_name, email, profile_picture_url, fcm_token')
+        .select('id, display_name, username, email, profile_picture_url, fcm_token')
         .eq('id', therapistId)
         .single();
 
@@ -423,7 +423,7 @@ module.exports = {
       res.json({
         profile: {
           id: user.id,
-          displayName: user.display_name,
+          displayName: user.display_name || user.username || (user.email ? user.email.split('@')[0] : 'Therapist'),
           email: user.email,
           profilePictureUrl: user.profile_picture_url,
           availabilityJson: profile?.availability_json || {},
