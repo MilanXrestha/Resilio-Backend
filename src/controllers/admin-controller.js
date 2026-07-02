@@ -54,15 +54,32 @@ module.exports = {
         .select('*, therapist_profiles(*)', { count: 'exact' })
         .eq('user_role', 'therapist');
       if (search) q = q.ilike('display_name', `%${search}%`);
-      const { data, count, error } = await q;
+      const { data, error } = await q;
       if (error) throw error;
-      let therapists = data || [];
+      let rows = data || [];
       if (verified === 'true') {
-        therapists = therapists.filter((t) => t.therapist_profiles?.is_verified);
+        rows = rows.filter((t) => t.therapist_profiles?.is_verified);
       } else if (verified === 'false') {
-        therapists = therapists.filter((t) => !t.therapist_profiles?.is_verified);
+        rows = rows.filter((t) => !t.therapist_profiles?.is_verified);
       }
-      res.json({ therapists, total: verified === 'all' ? (count || therapists.length) : therapists.length });
+      // Flat camelCase shape the admin UI reads.
+      const therapists = rows.map((u) => {
+        const p = u.therapist_profiles || {};
+        return {
+          id: u.id,
+          displayName: u.display_name || u.username || 'Therapist',
+          email: u.email || '',
+          photoUrl: u.photo_url || '',
+          isVerified: p.is_verified ?? false,
+          specialty: p.specialty || 'Not specified',
+          yearsOfExperience: p.years_of_experience ?? 0,
+          rating: p.rating ?? 0,
+          profileImageUrl: p.profile_image_url || u.photo_url || '',
+          consultationFee: p.consultation_fee ?? 0,
+          createdAt: u.created_at,
+        };
+      });
+      res.json({ therapists, total: therapists.length });
     } catch (err) {
       console.error('getTherapists error:', err);
       res.status(500).json({ error: 'Internal server error' });
@@ -123,7 +140,17 @@ module.exports = {
       q = q.order('created_at', { ascending: false }).range(Number(offset), Number(offset) + Number(limit) - 1);
       const { data, count, error } = await q;
       if (error) throw error;
-      res.json({ users: data || [], total: count || 0 });
+      const users = (data || []).map((u) => ({
+        id: u.id,
+        displayName: u.display_name || u.username || 'User',
+        email: u.email || '',
+        userRole: u.user_role || 'user',
+        photoUrl: u.photo_url || '',
+        isActive: (u.account_status || 'active') === 'active',
+        accountStatus: u.account_status || 'active',
+        createdAt: u.created_at,
+      }));
+      res.json({ users, total: count || 0 });
     } catch (err) {
       console.error('getUsers error:', err);
       res.status(500).json({ error: 'Internal server error' });
