@@ -362,15 +362,52 @@ module.exports = {
   // ── Notifications ─────────────────────────────────────────────────────────
   async broadcastNotification(req, res) {
     try {
-      // Persist to notifications table if present; FCM fan-out is best-effort.
-      const { title, body, target } = req.body;
+      const { title, body, targetRole = 'all', actionType = 'GENERAL' } = req.body;
+
+      if (!title || !body) {
+        return res.status(400).json({ error: 'title and body are required' });
+      }
+
+      // 1. Fetch FCM tokens for target audience
+      let query = supabase.from('users').select('id, fcm_token').not('fcm_token', 'is', null);
+      if (targetRole === 'user') {
+        query = query.eq('user_role', 'user');
+      } else if (targetRole === 'therapist') {
+        query = query.eq('user_role', 'therapist');
+      }
+      const { data: users, error: userErr } = await query;
+      if (userErr) throw userErr;
+
+      const tokens = (users || []).map((u) => u.fcm_token).filter(Boolean);
+
+      // 2. Fan-out via FCM (best-effort, chunked)
+      let sentCount = 0;
+      if (tokens.length > 0) {
+        const { fcmService } = require('../services/fcm-service');
+        const chunks = [];
+        for (let i = 0; i < tokens.length; i += 500) chunks.push(tokens.slice(i, i + 500));
+        for (const chunk of chunks) {
+          await Promise.allSettled(
+            chunk.map((token) => fcmService.sendToToken(token, title, body, { actionType }))
+          );
+          sentCount += chunk.length;
+        }
+      }
+
+      // 3. Persist to broadcasts log table (non-fatal)
       try {
         await supabase.from('notifications').insert({
-          title, body, type: 'broadcast', target: target || 'all',
+          title,
+          body,
+          type: 'broadcast',
+          target: targetRole,
+          action_type: actionType,
         });
-      } catch (_) {}
-      res.json({ sent: true });
+      } catch (_) { /* non-fatal */ }
+
+      res.json({ sent: sentCount, tokens: tokens.length });
     } catch (err) {
+      console.error('broadcastNotification error:', err);
       res.status(500).json({ error: 'Internal server error' });
     }
   },
